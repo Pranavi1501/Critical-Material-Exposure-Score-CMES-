@@ -2,6 +2,8 @@
 
 **A design-stage decision-support tool for assessing critical mineral dependency 
 in clean-energy building systems.**
+
+Take a quick look? Launch the tool - (https://pranavi1501.github.io/Critical-Material-Exposure-Score-CMES-/)
 ---
 ## What it does
 
