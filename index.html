@@ -8,1325 +8,1476 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════════════════════ */
 :root {
-  --bg:        #F4F2ED;
-  --bg-surf:   #FDFCF9;
-  --bg-inset:  #EDEAE2;
-  --bg-card:   #FFFFFF;
-  --border-lo: rgba(80,68,50,0.08);
-  --border-md: rgba(80,68,50,0.15);
-  --border-hi: rgba(80,68,50,0.26);
-  --indigo:    #4338CA;
-  --indigo-lt: #EEF2FF;
-  --indigo-mid:#818CF8;
-  --indigo-dk: #312E81;
-  --indigo-dim:rgba(67,56,202,0.10);
-  --risk-c:#DC2626; --risk-c-bg:#FEF2F2; --risk-c-br:rgba(220,38,38,0.18);
-  --risk-h:#D97706; --risk-h-bg:#FFFBEB; --risk-h-br:rgba(217,119,6,0.18);
-  --risk-m:#CA8A04; --risk-m-bg:#FEFCE8; --risk-m-br:rgba(202,138,4,0.18);
-  --risk-l:#059669; --risk-l-bg:#F0FDF4; --risk-l-br:rgba(5,150,105,0.18);
-  --risk-v:#6B7280; --risk-v-bg:#F9FAFB; --risk-v-br:rgba(107,114,128,0.18);
+  --bg:#F4F2ED; --bg-s:#FDFCF9; --bg-i:#EDEAE2; --bg-c:#FFFFFF;
+  --b0:rgba(80,68,50,0.07); --b1:rgba(80,68,50,0.14); --b2:rgba(80,68,50,0.24);
+  --ind:#4338CA; --ind-l:#EEF2FF; --ind-m:#818CF8; --ind-d:#312E81; --ind-dim:rgba(67,56,202,0.09);
+  --rc:#DC2626; --rc-b:#FEF2F2; --rh:#D97706; --rh-b:#FFFBEB;
+  --rm:#CA8A04; --rm-b:#FEFCE8; --rl:#059669; --rl-b:#F0FDF4;
+  --rv:#6B7280; --rv-b:#F9FAFB;
   --t1:#1C1917; --t2:#57534E; --t3:#A8A29E; --t4:#D6D3D1;
-  --fs:'Instrument Serif',Georgia,serif;
-  --fb:'Plus Jakarta Sans',sans-serif;
-  --fm:'DM Mono',monospace;
-  --rsm:6px; --rmd:10px; --rlg:16px; --rxl:24px;
-  --sh1:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
-  --sh2:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.04);
-  --sh3:0 12px 40px rgba(0,0,0,0.10),0 4px 12px rgba(0,0,0,0.06);
+  --fs:'Instrument Serif',Georgia,serif; --fb:'Plus Jakarta Sans',sans-serif; --fm:'DM Mono',monospace;
+  --r1:6px; --r2:12px; --r3:18px; --r4:26px;
+  --s1:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --s2:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.04);
+  --s3:0 12px 40px rgba(0,0,0,0.10),0 4px 12px rgba(0,0,0,0.06);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   BASE
-═══════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;font-size:15px}
-body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.6;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(80,68,50,0.14) 1px,transparent 1px);background-size:26px 26px;pointer-events:none;z-index:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
 
-/* ═══════════════════════════════════════════════════════════════
-   PAGE TRANSITIONS — two views slide horizontally
-═══════════════════════════════════════════════════════════════ */
-.page-wrap{position:relative;z-index:1;width:100%;overflow:hidden}
-.page{width:100%;min-height:100vh;transition:transform 0.55s cubic-bezier(0.77,0,0.18,1),opacity 0.45s ease}
-#page-input{transform:translateX(0);opacity:1}
-#page-results{position:fixed;inset:0;transform:translateX(100%);opacity:0;overflow-y:auto;z-index:50;background:var(--bg)}
-#page-results.active{transform:translateX(0);opacity:1;position:fixed}
-#page-results::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(80,68,50,0.14) 1px,transparent 1px);background-size:26px 26px;pointer-events:none;z-index:0}
+/* ── DOT GRID ── */
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(80,68,50,0.13) 1px,transparent 1px);background-size:26px 26px;pointer-events:none;z-index:0}
 
-/* ═══════════════════════════════════════════════════════════════
-   SHARED NAV
-═══════════════════════════════════════════════════════════════ */
-.nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:58px;background:rgba(253,252,249,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-lo);box-shadow:var(--sh1)}
+/* ── PAGE TRANSITIONS ── */
+#page-region,#page-input,#page-results{position:fixed;inset:0;overflow-y:auto;transition:transform .55s cubic-bezier(.77,0,.18,1),opacity .4s ease;background:var(--bg);z-index:10}
+#page-region{transform:translateX(0);opacity:1;z-index:30}
+#page-region::before,#page-input::before,#page-results::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(80,68,50,0.13) 1px,transparent 1px);background-size:26px 26px;pointer-events:none;z-index:0}
+#page-input{transform:translateX(100%);opacity:0;z-index:20}
+#page-results{transform:translateX(100%);opacity:0;z-index:20}
+#page-input.active,#page-results.active{transform:translateX(0);opacity:1}
+#page-region.out{transform:translateX(-60px);opacity:0;pointer-events:none}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:56px;background:rgba(253,252,249,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--b0);box-shadow:var(--s1)}
 .nav-brand{display:flex;align-items:center;gap:10px}
-.nav-mark{width:28px;height:28px;background:var(--indigo);border-radius:7px;display:flex;align-items:center;justify-content:center}
-.nav-mark svg{width:14px;height:14px}
-.nav-name{font-family:var(--fs);font-size:18px;color:var(--indigo-dk);letter-spacing:-0.3px}
-.nav-name span{font-family:var(--fb);font-weight:400;font-size:13px;color:var(--t3);margin-left:6px}
-.nav-right{display:flex;align-items:center;gap:10px}
-.nav-pill{font-family:var(--fm);font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid var(--border-md);color:var(--t3);background:var(--bg-inset);letter-spacing:0.3px}
-.nav-back{display:flex;align-items:center;gap:6px;font-family:var(--fb);font-size:13px;font-weight:500;color:var(--t2);background:var(--bg-inset);border:1px solid var(--border-md);padding:6px 14px;border-radius:var(--rmd);cursor:pointer;transition:all .15s}
-.nav-back:hover{background:var(--bg-card);color:var(--t1)}
+.nav-mark{width:26px;height:26px;background:var(--ind);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-mark svg{width:13px;height:13px}
+.nav-name{font-family:var(--fs);font-size:17px;color:var(--ind-d);letter-spacing:-.3px}
+.nav-name span{font-family:var(--fb);font-weight:400;font-size:12px;color:var(--t3);margin-left:6px}
+.nav-r{display:flex;align-items:center;gap:8px}
+.nav-chip{font-family:var(--fm);font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--b1);color:var(--t3);background:var(--bg-i);letter-spacing:.3px}
+.nav-back{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--t2);background:var(--bg-i);border:1px solid var(--b1);padding:5px 13px;border-radius:var(--r2);cursor:pointer;transition:all .15s}
+.nav-back:hover{background:var(--bg-c);color:var(--t1)}
+.nav-region-badge{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;color:var(--ind-d);background:var(--ind-l);border:1px solid rgba(67,56,202,0.14);padding:4px 12px;border-radius:20px;cursor:pointer}
+.nav-region-badge:hover{background:#E0E7FF}
 
-/* ═══════════════════════════════════════════════════════════════
-   PAGE 1 — INPUT / LANDING
-═══════════════════════════════════════════════════════════════ */
-.hero{padding:80px 52px 56px;max-width:920px}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:10px;color:var(--indigo);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:22px;padding:5px 13px;background:var(--indigo-lt);border:1px solid rgba(67,56,202,0.14);border-radius:20px}
-.hero-eyebrow::before{content:'';width:5px;height:5px;background:var(--indigo);border-radius:50%}
-h1{font-family:var(--fs);font-size:clamp(38px,5.5vw,64px);font-weight:400;line-height:1.06;letter-spacing:-2px;color:var(--t1);margin-bottom:22px}
-h1 em{color:var(--indigo);font-style:italic}
-.hero-sub{font-size:16px;color:var(--t2);max-width:520px;line-height:1.78;margin-bottom:52px}
+/* ══════════════════════════════════════════════
+   PAGE 0 — REGION SELECTOR
+══════════════════════════════════════════════ */
+.region-page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
 
-/* Feature strip */
-.feature-strip{display:flex;gap:0;margin-bottom:56px;border:1px solid var(--border-md);border-radius:var(--rlg);overflow:hidden;background:var(--bg-card);box-shadow:var(--sh1);max-width:900px}
-.feature{flex:1;padding:20px 22px;border-right:1px solid var(--border-lo)}
-.feature:last-child{border-right:none}
-.feature-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:15px}
-.fi-geo{background:#EEF2FF} .fi-mat{background:#FEF2F2} .fi-rec{background:#F0FDF4} .fi-des{background:#FFFBEB}
-.feature-label{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:3px}
-.feature-sub{font-size:11px;color:var(--t3);font-family:var(--fm);line-height:1.5}
+/* Full-width hero with two-column layout */
+.region-hero{padding:80px 52px 56px;position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.region-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#EEF2FF 0%,#F4F2ED 45%,#FEF3C7 100%);opacity:.65}
+.region-hero-orb1{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(67,56,202,0.10) 0%,transparent 65%);top:-200px;right:-100px;border-radius:50%}
+.region-hero-orb2{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(217,119,6,0.09) 0%,transparent 65%);bottom:-120px;left:5%;border-radius:50%}
+.region-hero-inner{position:relative;z-index:1}
+.region-hero-right{position:relative;z-index:1;display:flex;flex-direction:column;gap:12px}
+
+/* Why-this-matters panel in hero right */
+.hero-stat-card{background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);border:1px solid var(--b1);border-radius:var(--r3);padding:16px 20px;display:flex;align-items:flex-start;gap:14px}
+.hsc-num{font-family:var(--fs);font-size:28px;color:var(--ind);line-height:1;letter-spacing:-1px;flex-shrink:0;min-width:56px}
+.hsc-lbl{font-size:12px;color:var(--t2);line-height:1.55;padding-top:3px}
+
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:10px;color:var(--ind);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:20px;padding:5px 13px;background:var(--ind-l);border:1px solid rgba(67,56,202,0.13);border-radius:20px}
+.eyebrow::before{content:'';width:5px;height:5px;background:var(--ind);border-radius:50%}
+.region-hero h1{font-family:var(--fs);font-size:clamp(38px,4.5vw,60px);font-weight:400;line-height:1.06;letter-spacing:-2.5px;color:var(--t1);margin-bottom:20px}
+.region-hero h1 em{color:var(--ind);font-style:italic}
+.region-hero-sub{font-size:16px;color:var(--t2);line-height:1.75;margin-bottom:0;max-width:480px}
+
+/* Region grid — full width, no max-width clamp */
+.region-section{padding:0 52px 56px;flex:1}
+.region-section-title{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.region-section-title::after{content:'';flex:1;height:1px;background:var(--b0)}
+.region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.region-card{background:var(--bg-c);border:1.5px solid var(--b1);border-radius:var(--r4);padding:24px 26px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.region-card:hover{border-color:var(--ind-m);box-shadow:var(--s2);transform:translateY(-2px)}
+.region-card.selected{border-color:var(--ind);box-shadow:0 0 0 3px var(--ind-dim),var(--s2)}
+.rc-flag{font-size:26px;margin-bottom:10px;display:block}
+.rc-name{font-family:var(--fs);font-size:19px;color:var(--t1);margin-bottom:3px;letter-spacing:-.3px}
+.rc-sub{font-size:11px;color:var(--t3);font-family:var(--fm);margin-bottom:14px;line-height:1.4}
+.rc-policy{display:flex;flex-direction:column;gap:6px;flex:1}
+.rc-pol-row{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--t2);line-height:1.5}
+.rc-pol-row::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ind);flex-shrink:0;margin-top:5px}
+.rc-threshold{display:inline-flex;align-items:center;gap:4px;margin-top:14px;font-family:var(--fm);font-size:11px;border-radius:20px;padding:4px 12px;letter-spacing:.3px;font-weight:500;align-self:flex-start}
+.rc-threshold.safe{background:var(--rl-b);color:var(--rl);border:1px solid rgba(5,150,105,0.15)}
+.rc-threshold.warn{background:var(--rh-b);color:var(--rh);border:1px solid rgba(217,119,6,0.15)}
+.rc-threshold.crit{background:var(--rc-b);color:var(--rc);border:1px solid rgba(220,38,38,0.15)}
+
+.region-continue{padding:0 52px 52px}
+.region-btn{display:inline-flex;align-items:center;gap:8px;background:var(--ind);color:white;border:none;padding:15px 32px;border-radius:var(--r2);font-family:var(--fb);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;box-shadow:0 2px 10px rgba(67,56,202,0.28);opacity:.4;pointer-events:none}
+.region-btn.ready{opacity:1;pointer-events:auto}
+.region-btn.ready:hover{background:var(--ind-d);box-shadow:0 4px 18px rgba(67,56,202,0.36);transform:translateY(-1px)}
+
+/* ══════════════════════════════════════════════
+   PAGE 1 — INPUT
+══════════════════════════════════════════════ */
+.input-body{position:relative;z-index:1}
+
+/* Config page header */
+.config-page-hdr{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:36px 0 28px;border-bottom:1px solid var(--b0);margin-bottom:24px}
+.config-page-hdr-left{flex:1}
+.config-page-hdr h2{font-family:var(--fs);font-size:clamp(28px,3.2vw,42px);font-weight:400;line-height:1.08;letter-spacing:-1.8px;color:var(--t1);margin-bottom:8px}
+.config-page-hdr h2 em{color:var(--ind);font-style:italic}
+.config-page-sub{font-size:14px;color:var(--t2);line-height:1.7;max-width:460px}
+.config-page-hdr-right{flex-shrink:0;background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r3);padding:16px 22px;box-shadow:var(--s1);min-width:220px}
+.ihr-lbl{font-family:var(--fm);font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.ihr-inner{display:flex;align-items:center;gap:12px}
+.ihr-flag{font-size:26px;flex-shrink:0}
+.ihr-text{flex:1}
+.ihr-name{font-family:var(--fs);font-size:17px;color:var(--t1);margin-bottom:3px;letter-spacing:-.3px;line-height:1.1}
+.ihr-threshold{font-family:var(--fm);font-size:11px;color:var(--ind);line-height:1.5}
 
 /* Config grid */
-.config-wrap{padding:0 52px 80px}
-.config-grid{display:grid;grid-template-columns:400px 1fr;gap:20px;max-width:1200px}
+.config-wrap{padding:0 52px 72px}
+.config-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;width:100%}
 
 /* Panel */
-.panel{background:var(--bg-card);border:1px solid var(--border-md);border-radius:var(--rxl);padding:28px;box-shadow:var(--sh1)}
-.panel-hdr{font-family:var(--fs);font-size:18px;color:var(--t1);margin-bottom:24px;display:flex;align-items:center;gap:10px;letter-spacing:-0.3px}
-.phd{width:7px;height:7px;background:var(--indigo);border-radius:50%;flex-shrink:0}
+.panel{background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r4);padding:26px;box-shadow:var(--s1)}
+.panel-hdr{font-family:var(--fs);font-size:17px;color:var(--t1);margin-bottom:22px;display:flex;align-items:center;gap:9px;letter-spacing:-.3px}
+.phd{width:6px;height:6px;background:var(--ind);border-radius:50%;flex-shrink:0}
 
 /* Form */
-.fsec{margin-bottom:20px}
-.fsec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid var(--border-lo)}
-.fsec-lbl{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3)}
-.frow{margin-bottom:11px}
-.frow label{display:block;font-size:12px;color:var(--t2);margin-bottom:5px;font-weight:500}
-.frow input,.frow select{width:100%;background:var(--bg-surf);border:1px solid var(--border-md);color:var(--t1);padding:9px 12px;border-radius:var(--rsm);font-size:14px;font-family:var(--fm);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
-.frow input:focus,.frow select:focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-dim)}
-.iu{display:flex;align-items:center;gap:7px}
-.iu input{flex:1}
-.ubg{font-family:var(--fm);font-size:11px;color:var(--t3);background:var(--bg-inset);border:1px solid var(--border-lo);padding:5px 9px;border-radius:var(--rsm);white-space:nowrap}
-.tog{position:relative;width:36px;height:19px;cursor:pointer;flex-shrink:0}
+.fsec{margin-bottom:18px}
+.fsec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--b0)}
+.fsec-lbl{font-family:var(--fm);font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3)}
+.frow{margin-bottom:10px}
+.frow label{display:block;font-size:12px;color:var(--t2);margin-bottom:4px;font-weight:500}
+.frow input,.frow select{width:100%;background:var(--bg-s);border:1px solid var(--b1);color:var(--t1);padding:8px 11px;border-radius:var(--r1);font-size:13px;font-family:var(--fm);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.frow input:focus,.frow select:focus{border-color:var(--ind);box-shadow:0 0 0 3px var(--ind-dim)}
+.iu{display:flex;align-items:center;gap:6px}.iu input{flex:1}
+.ubg{font-family:var(--fm);font-size:11px;color:var(--t3);background:var(--bg-i);border:1px solid var(--b0);padding:5px 8px;border-radius:var(--r1);white-space:nowrap}
+.tog{position:relative;width:34px;height:18px;cursor:pointer;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
-.tsl{position:absolute;inset:0;background:var(--bg-inset);border:1px solid var(--border-md);border-radius:20px;transition:.2s}
-.tsl::before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:var(--t3);border-radius:50%;transition:.2s}
-.tog input:checked+.tsl{background:var(--indigo-lt);border-color:var(--indigo-mid)}
-.tog input:checked+.tsl::before{transform:translateX(17px);background:var(--indigo)}
+.tsl{position:absolute;inset:0;background:var(--bg-i);border:1px solid var(--b1);border-radius:20px;transition:.2s}
+.tsl::before{content:'';position:absolute;width:11px;height:11px;left:3px;top:3px;background:var(--t3);border-radius:50%;transition:.2s}
+.tog input:checked+.tsl{background:var(--ind-l);border-color:var(--ind-m)}
+.tog input:checked+.tsl::before{transform:translateX(16px);background:var(--ind)}
+.calc-btn{width:100%;background:var(--ind);color:white;border:none;padding:14px 18px;border-radius:var(--r2);font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;margin-top:18px;transition:all .15s;box-shadow:0 2px 10px rgba(67,56,202,0.26);display:flex;align-items:center;justify-content:center;gap:7px}
+.calc-btn:hover{background:var(--ind-d);box-shadow:0 4px 16px rgba(67,56,202,0.34);transform:translateY(-1px)}
 
-/* Summary panel (right side of config) */
-.summary-panel{display:flex;flex-direction:column;gap:14px}
-.sum-card{background:var(--bg-card);border:1px solid var(--border-md);border-radius:var(--rxl);padding:24px;box-shadow:var(--sh1)}
-.sum-card-title{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:16px}
-.sys-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-lo)}
-.sys-row:last-child{border-bottom:none}
-.sys-name{font-size:13px;color:var(--t2)}
-.sys-val{font-family:var(--fm);font-size:12px;color:var(--t1);font-weight:500}
-.sys-off{color:var(--t4)}
+/* ── RIGHT SIDEBAR ── */
+.summary-col{display:flex;flex-direction:column;gap:12px;position:sticky;top:76px}
+.sidebar-card{background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r4);padding:20px;box-shadow:var(--s1);overflow:hidden}
+.sb-title{font-family:var(--fm);font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:14px}
 
-.methodology-preview{background:var(--indigo-lt);border:1px solid rgba(67,56,202,0.12);border-radius:var(--rxl);padding:22px}
-.mp-title{font-family:var(--fs);font-size:15px;color:var(--indigo-dk);margin-bottom:8px}
-.mp-body{font-size:12px;color:var(--t2);line-height:1.65;margin-bottom:14px}
-.mp-sources{display:flex;flex-direction:column;gap:5px}
-.mp-source{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--t2);font-family:var(--fm)}
-.mp-source::before{content:'↗';color:var(--indigo);flex-shrink:0;margin-top:1px}
+/* Live system pills */
+.sys-pills{display:flex;flex-direction:column;gap:6px}
+.sys-pill{display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:var(--r2);border:1px solid var(--b0);background:var(--bg-s);transition:all .25s}
+.sys-pill.active{background:var(--bg-c);border-color:var(--b1);box-shadow:var(--sh1)}
+.sys-pill.inactive{opacity:.35}
+.sys-pill-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background .25s}
+.sys-pill-info{flex:1;min-width:0}
+.sys-pill-name{font-size:11px;font-weight:600;color:var(--t1);margin-bottom:1px}
+.sys-pill-val{font-family:var(--fm);font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.calc-btn{width:100%;background:var(--indigo);color:white;border:none;padding:15px 20px;border-radius:var(--rmd);font-family:var(--fb);font-size:15px;font-weight:600;cursor:pointer;margin-top:20px;transition:all .15s;box-shadow:0 2px 10px rgba(67,56,202,0.30);display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.1px}
-.calc-btn:hover{background:var(--indigo-dk);box-shadow:0 4px 18px rgba(67,56,202,0.38);transform:translateY(-1px)}
-.calc-btn:active{transform:translateY(0)}
+/* Live risk preview bars */
+.risk-preview{margin-top:14px}
+.rp-title{font-family:var(--fm);font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.rp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rp-label{font-size:10px;color:var(--t2);width:70px;flex-shrink:0;font-family:var(--fm)}
+.rp-bar-track{flex:1;height:4px;background:var(--bg-i);border-radius:4px;overflow:hidden}
+.rp-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.16,1,.3,1),background .4s}
 
-/* ═══════════════════════════════════════════════════════════════
-   PAGE 2 — RESULTS DASHBOARD
-═══════════════════════════════════════════════════════════════ */
-.results-wrap{position:relative;z-index:1;padding:0 52px 80px;max-width:1300px;margin:0 auto}
+/* Policy pill strip */
+.policy-strip{border-radius:var(--r3);padding:14px 16px;border:1px solid transparent}
+.ps-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;font-size:11px;color:var(--t2);line-height:1.45}
+.ps-row:last-child{margin-bottom:0}
+.ps-row::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ind);flex-shrink:0;margin-top:4px}
+.ps-pill-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ps-pill{font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid transparent}
 
-/* Tab bar */
-.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border-md);margin-bottom:32px;padding-top:8px}
-.tab{font-family:var(--fb);font-size:13px;font-weight:500;color:var(--t3);padding:10px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px;margin-bottom:-1px}
-.tab:hover{color:var(--t2)}
-.tab.active{color:var(--indigo);border-bottom-color:var(--indigo)}
-.tab-icon{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px}
-.tab-pane{display:none}
-.tab-pane.active{display:block}
+/* Form section with animated entry */
+.fsec{margin-bottom:16px;transition:opacity .2s}
+.fsec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:10px 12px;border-radius:var(--r2);background:var(--bg-s);border:1px solid var(--b0);transition:all .2s}
+.fsec-hdr.active-sys{background:var(--ind-l);border-color:rgba(67,56,202,0.12)}
+.fsec-hdr.inactive-sys{opacity:.5}
+.fsec-lbl{font-family:var(--fm);font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3)}
+.fsec-hdr.active-sys .fsec-lbl{color:var(--ind)}
+.fsec-body{padding:10px 4px 4px;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.frow{margin-bottom:10px}
+.frow label{display:block;font-size:12px;color:var(--t2);margin-bottom:4px;font-weight:500}
+.frow input,.frow select{width:100%;background:var(--bg-s);border:1px solid var(--b1);color:var(--t1);padding:9px 12px;border-radius:var(--r1);font-size:13px;font-family:var(--fm);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.frow input:focus,.frow select:focus{border-color:var(--ind);box-shadow:0 0 0 3px var(--ind-dim)}
+.iu{display:flex;align-items:center;gap:6px}.iu input{flex:1}
+.ubg{font-family:var(--fm);font-size:11px;color:var(--t3);background:var(--bg-i);border:1px solid var(--b0);padding:5px 8px;border-radius:var(--r1);white-space:nowrap}
+
+/* Sources — compact */
+.sources-card{background:var(--bg-i);border:1px solid var(--b0);border-radius:var(--r3);padding:14px 16px}
+.sources-ttl{font-size:11px;font-weight:600;color:var(--t2);margin-bottom:8px}
+.source-row{display:flex;align-items:flex-start;gap:6px;font-size:10px;color:var(--t3);font-family:var(--fm);margin-bottom:4px;line-height:1.4}
+.source-row::before{content:'↗';color:var(--ind);flex-shrink:0}
+.disc{padding:10px 12px;background:var(--bg-i);border:1px solid var(--b0);border-radius:var(--r2);font-size:10px;color:var(--t3);font-family:var(--fm);line-height:1.6}
+
+/* Region policy card */
+.region-policy-card{border-radius:var(--r3);padding:14px 16px;border:1px solid transparent}
+.rpc-title{font-family:var(--fs);font-size:13px;margin-bottom:5px;letter-spacing:-.2px}
+.rpc-body{font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+.rpc-pills{display:flex;flex-wrap:wrap;gap:5px}
+.rpc-pill{font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid transparent}
+
+/* ══════════════════════════════════════════════
+   PAGE 2 — RESULTS
+══════════════════════════════════════════════ */
+.res-wrap{position:relative;z-index:1;padding:0 52px 80px;max-width:1300px;margin:0 auto}
 
 /* Score strip */
-.score-strip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:24px 28px;background:var(--bg-card);border:1px solid var(--border-md);border-radius:var(--rxl);margin-bottom:24px;box-shadow:var(--sh1)}
-.score-ring-wrap{position:relative;width:88px;height:88px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.score-ring-wrap svg{position:absolute;inset:0;width:100%;height:100%}
-.score-big{font-family:var(--fs);font-size:34px;font-weight:400;letter-spacing:-2px;line-height:1;position:relative;z-index:1}
+.score-strip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:26px 30px;background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r4);margin-bottom:20px;box-shadow:var(--s1)}
+.score-ring{width:92px;height:92px;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center}
+.score-ring svg{position:absolute;inset:0;width:100%;height:100%}
+.score-big{font-family:var(--fs);font-size:36px;font-weight:400;letter-spacing:-2px;line-height:1;position:relative;z-index:1}
 .score-mid{flex:1}
-.score-label{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
-.score-verdict{font-family:var(--fs);font-size:22px;line-height:1.15;margin-bottom:5px;letter-spacing:-0.5px}
-.score-desc{font-size:12px;color:var(--t2);line-height:1.5;max-width:420px}
-.score-meta-right{text-align:right}
-.score-date{font-family:var(--fm);font-size:10px;color:var(--t3);margin-bottom:4px}
-.score-building{font-size:12px;color:var(--t2)}
+.score-ey{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.score-verdict{font-family:var(--fs);font-size:26px;line-height:1.15;margin-bottom:6px;letter-spacing:-.5px}
+.score-desc{font-size:14px;color:var(--t2);line-height:1.65;max-width:480px}
+.score-rt{text-align:right}
+.score-rt-date{font-family:var(--fm);font-size:10px;color:var(--t3);margin-bottom:4px}
+.score-rt-build{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* Region context banner */
+.region-banner{display:flex;align-items:flex-start;gap:16px;padding:18px 22px;border-radius:var(--r3);margin-bottom:20px;border:1px solid transparent}
+.rb-flag{font-size:24px;flex-shrink:0;margin-top:2px}
+.rb-content{flex:1}
+.rb-title{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:5px}
+.rb-text{font-size:13px;color:var(--t2);line-height:1.65}
+.rb-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rb-pill{font-family:var(--fm);font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid transparent}
 
 /* Gauge */
 .gauge-outer{margin-bottom:24px}
-.gauge-bar{height:6px;border-radius:6px;background:linear-gradient(to right,#059669 0%,#CA8A04 35%,#D97706 58%,#DC2626 100%);position:relative;opacity:.2}
-.gauge-needle{position:absolute;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--bg-card);border:2.5px solid currentColor;transform:translateX(-50%);transition:left 1.1s cubic-bezier(.16,1,.3,1),border-color .5s;box-shadow:var(--sh1);margin-left:-9px}
-.gauge-ticks{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--t3);padding-top:6px}
+.gauge-bar{height:6px;border-radius:6px;background:linear-gradient(to right,#059669 0%,#CA8A04 35%,#D97706 58%,#DC2626 100%);position:relative;opacity:.22}
+.gauge-needle{position:absolute;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--bg-c);border:2.5px solid currentColor;transform:translateX(-50%);transition:left 1.1s cubic-bezier(.16,1,.3,1),border-color .5s;box-shadow:var(--s1);margin-left:-9px}
+.gauge-ticks{display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;color:var(--t3);padding-top:7px}
+
+/* Tab bar */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--b0);margin-bottom:28px;padding-top:4px}
+.tab{font-family:var(--fb);font-size:14px;font-weight:500;color:var(--t3);padding:10px 22px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px;margin-bottom:-2px}
+.tab:hover{color:var(--t2)}
+.tab.active{color:var(--ind);border-bottom-color:var(--ind)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
 
 /* Results grid */
-.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
-.res-card{background:var(--bg-card);border:1px solid var(--border-md);border-radius:var(--rxl);padding:22px;box-shadow:var(--sh1)}
-.res-card.full{grid-column:1/-1}
-.rc-title{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
-.rc-sub{font-size:12px;color:var(--t2);margin-bottom:16px;line-height:1.5}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.rcard{background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r4);padding:26px 28px;box-shadow:var(--s2)}
+.rcard.full{grid-column:1/-1}
+.rch{font-family:var(--fb);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--t1);margin-bottom:5px}
+.rcs{font-size:13px;color:var(--t3);margin-bottom:18px;line-height:1.6}
 
-/* Planetary boundaries */
+/* PB chart */
 .pb-wrap{width:100%;position:relative}
 .pb-wrap canvas{display:block;width:100%!important}
-.pb-legend-row{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px}
-.pbl{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
-.pbl-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.pb-leg{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:14px}
+.pbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.pbl-d{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
 /* Donut */
-.donut-wrap{position:relative;width:100%}
-.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
-.dc-num{font-family:var(--fs);font-size:22px;line-height:1;letter-spacing:-1px;display:block}
-.dc-lbl{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase}
-.donut-legend{margin-top:12px;display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto}
-.dl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
-.dl-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-.dl-val{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t3)}
+.dw{position:relative;width:100%}
+.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.dcn{font-family:var(--fs);font-size:22px;line-height:1;letter-spacing:-1px;display:block}
+.dcs{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase}
+.dl{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:150px;overflow-y:auto}
+.dli{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t2)}
+.dld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.dlv{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--t3)}
 
-/* Dimension rows */
-.dim-rows{display:flex;flex-direction:column;gap:7px}
-.dim-row{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--bg-surf);border:1px solid var(--border-lo);border-radius:var(--rmd);border-left:3px solid transparent}
-.dim-nm{flex:1;font-size:12px;color:var(--t2)}
-.dim-wt{font-size:10px;color:var(--t3);font-family:var(--fm);width:24px;text-align:right}
-.dim-bw{width:68px}
-.dim-b{height:3px;border-radius:3px;background:var(--border-lo)}
-.dim-bf{height:100%;border-radius:3px;transition:width .9s ease;width:0}
-.dim-sc{font-family:var(--fm);font-size:12px;width:24px;text-align:right;font-weight:500}
+/* Dim rows — action-oriented for engineers */
+.dim-rows{display:flex;flex-direction:column;gap:8px}
+.dim-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg-s);border:1px solid var(--b0);border-radius:var(--r2);border-left:3px solid transparent}
+.dim-nm{flex:1;font-size:13px;color:var(--t2);font-weight:500}
+.dim-wt{font-size:11px;color:var(--t3);font-family:var(--fm);width:28px;text-align:right}
+.dim-bw{width:72px}
+.dim-b{height:4px;border-radius:4px;background:var(--b0)}
+.dim-bf{height:100%;border-radius:4px;transition:width .9s ease;width:0}
+.dim-sc{font-family:var(--fm);font-size:14px;width:30px;text-align:right;font-weight:700}
 
-/* Material table */
-.mt{width:100%;border-collapse:collapse;font-size:12px}
-.mt th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border-md)}
-.mt td{padding:8px 10px;border-bottom:1px solid var(--border-lo);font-family:var(--fm);color:var(--t2)}
+/* Mat table — investor-readable */
+.mt{width:100%;border-collapse:collapse}
+.mt th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--b1);white-space:nowrap}
+.mt td{padding:11px 12px;border-bottom:1px solid var(--b0);font-family:var(--fm);font-size:12px;color:var(--t2);vertical-align:top;line-height:1.55}
 .mt tr:last-child td{border-bottom:none}
-.mt tr:hover td{background:var(--bg-inset)}
-.mt td:first-child{color:var(--t1);font-weight:500;font-family:var(--fb)}
-.rp{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;font-family:var(--fm)}
-.rp::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor}
-.pc{background:var(--risk-c-bg);color:var(--risk-c);border:1px solid var(--risk-c-br)}
-.ph{background:var(--risk-h-bg);color:var(--risk-h);border:1px solid var(--risk-h-br)}
-.pm{background:var(--risk-m-bg);color:var(--risk-m);border:1px solid var(--risk-m-br)}
-.pl{background:var(--risk-l-bg);color:var(--risk-l);border:1px solid var(--risk-l-br)}
-.pv{background:var(--risk-v-bg);color:var(--risk-v);border:1px solid var(--risk-v-br)}
+.mt tr:hover td{background:var(--bg-i)}
+.mt td:first-child{color:var(--t1);font-weight:600;font-family:var(--fb);font-size:13px}
+.mt td:last-child{font-family:var(--fb);font-size:12px;color:var(--t2);line-height:1.6;white-space:normal}
+.rp{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;font-family:var(--fm)}
+.rp::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.pc{background:var(--rc-b);color:var(--rc);border:1px solid rgba(220,38,38,0.18)}
+.ph{background:var(--rh-b);color:var(--rh);border:1px solid rgba(217,119,6,0.18)}
+.pm{background:var(--rm-b);color:var(--rm);border:1px solid rgba(202,138,4,0.18)}
+.pl{background:var(--rl-b);color:var(--rl);border:1px solid rgba(5,150,105,0.18)}
+.pv{background:var(--rv-b);color:var(--rv);border:1px solid rgba(107,114,128,0.18)}
 
-/* Recs */
-.recs{display:flex;flex-direction:column;gap:10px}
-.rec{padding:14px 16px;border-radius:var(--rlg);background:var(--bg-surf);border:1px solid var(--border-lo);border-left:4px solid var(--indigo)}
-.rec.warn{border-left-color:var(--risk-h);background:var(--risk-h-bg)}
-.rec-t{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--t1)}
-.rec-b{font-size:12px;color:var(--t2);line-height:1.6}
-.rec-s{margin-top:7px;font-family:var(--fm);font-size:11px;color:var(--indigo);display:flex;align-items:center;gap:5px}
+/* Recs — action-first, decision-ready */
+.recs{display:flex;flex-direction:column;gap:12px}
+.rec{padding:20px 22px;border-radius:var(--r3);background:var(--bg-s);border:1px solid var(--b0);border-left:4px solid var(--ind)}
+.rec.warn{border-left-color:var(--rh);background:var(--rh-b)}
+.rec-t{font-size:15px;font-weight:700;margin-bottom:7px;color:var(--t1)}
+.rec-b{font-size:13px;color:var(--t2);line-height:1.72}
+.rec-s{margin-top:10px;font-family:var(--fm);font-size:12px;color:var(--ind);display:inline-flex;align-items:center;gap:5px;font-weight:600;padding:6px 12px;background:var(--ind-l);border-radius:var(--r1)}
 .rec-s::before{content:'↑'}
-.rec.warn .rec-s{color:var(--risk-h)}
+.rec.warn .rec-s{color:var(--rh);background:rgba(217,119,6,0.08)}
 
-/* ═══════════════════════════════════════════════════════════════
-   METHODOLOGY TAB
-═══════════════════════════════════════════════════════════════ */
-.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
-.method-card{background:var(--bg-card);border:1px solid var(--border-md);border-radius:var(--rxl);padding:24px;box-shadow:var(--sh1)}
-.method-card.full{grid-column:1/-1}
-.mc-eyebrow{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
-.mc-title{font-family:var(--fs);font-size:19px;color:var(--t1);margin-bottom:10px;letter-spacing:-0.3px}
-.mc-body{font-size:13px;color:var(--t2);line-height:1.72;margin-bottom:14px}
-.mc-body p{margin-bottom:10px}
+/* Methodology — executive + engineer readable */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.mc{background:var(--bg-c);border:1px solid var(--b1);border-radius:var(--r4);padding:28px 30px;box-shadow:var(--s1)}
+.mc.full{grid-column:1/-1}
+.mc-ey{font-family:var(--fm);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.mc-title{font-family:var(--fs);font-size:21px;color:var(--t1);margin-bottom:12px;letter-spacing:-.3px}
+.mc-body{font-size:14px;color:var(--t2);line-height:1.78}
+.mc-body p{margin-bottom:12px}
 .mc-body p:last-child{margin-bottom:0}
+.fbox{background:var(--bg-i);border:1px solid var(--b1);border-left:3px solid var(--ind);border-radius:var(--r2);padding:16px 18px;margin:14px 0;font-family:var(--fm);font-size:12px;color:var(--t1);line-height:2.1}
+.fbox .eq{color:var(--ind);font-weight:600;font-size:13px}
+.flive{background:var(--ind-l);border:1px solid rgba(67,56,202,0.14);border-radius:var(--r2);padding:16px 18px;margin:12px 0}
+.flive-ttl{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ind);margin-bottom:12px;font-weight:600}
+.fl-row{display:flex;align-items:baseline;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(67,56,202,0.08)}
+.fl-row:last-child{border-bottom:none;font-weight:700;padding-top:10px}
+.fl-l{color:var(--t2);font-family:var(--fm)}
+.fl-v{color:var(--ind-d);font-family:var(--fm);font-weight:600}
+.st{width:100%;border-collapse:collapse;margin-top:10px}
+.st th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:9px 11px;border-bottom:1px solid var(--b1)}
+.st td{padding:11px 11px;border-bottom:1px solid var(--b0);color:var(--t2);vertical-align:top;line-height:1.65;font-size:13px}
+.st td:first-child{font-weight:600;color:var(--t1);width:160px;font-family:var(--fb);font-size:13px}
+.st tr:last-child td{border-bottom:none}
+.sbadge{display:inline-block;font-family:var(--fm);font-size:10px;background:var(--bg-i);border:1px solid var(--b1);border-radius:20px;padding:2px 8px;color:var(--t3);margin-right:4px}
+.wt{width:100%;border-collapse:collapse;margin-top:10px}
+.wt th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:9px 11px;border-bottom:1px solid var(--b1)}
+.wt td{padding:10px 11px;border-bottom:1px solid var(--b0);color:var(--t2);font-family:var(--fm);font-size:13px}
+.wt tr:last-child td{border-bottom:none}
+.wt td:first-child{color:var(--t1);font-weight:600;font-family:var(--fb);font-size:13px}
+.wt-bc{width:120px}
+.wt-b{height:5px;background:var(--b0);border-radius:4px;overflow:hidden}
+.wt-bf{height:100%;background:var(--ind);border-radius:4px}
+.disc-sm{padding:14px 16px;background:var(--bg-i);border:1px solid var(--b0);border-radius:var(--r2);font-size:12px;color:var(--t3);font-family:var(--fm);line-height:1.75;margin-top:8px}
 
-/* Formula box */
-.formula-box{background:var(--bg-inset);border:1px solid var(--border-md);border-radius:var(--rmd);padding:16px 18px;margin:14px 0;font-family:var(--fm);font-size:12px;color:var(--t1);line-height:1.9}
-.formula-box .eq{color:var(--indigo);font-weight:500}
-.formula-live{background:var(--indigo-lt);border:1px solid rgba(67,56,202,0.14);border-radius:var(--rmd);padding:16px 18px;margin:14px 0}
-.fl-title{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--indigo);margin-bottom:12px}
-.fl-row{display:flex;align-items:baseline;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(67,56,202,0.08)}
-.fl-row:last-child{border-bottom:none;font-weight:600;padding-top:8px}
-.fl-label{color:var(--t2);font-family:var(--fm)}
-.fl-val{color:var(--indigo-dk);font-family:var(--fm);font-weight:500}
 
-/* Source table */
-.src-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
-.src-table th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border-md)}
-.src-table td{padding:9px 10px;border-bottom:1px solid var(--border-lo);color:var(--t2);vertical-align:top;line-height:1.5}
-.src-table td:first-child{font-weight:600;color:var(--t1);width:140px;font-family:var(--fb)}
-.src-table tr:last-child td{border-bottom:none}
-.src-badge{display:inline-block;font-family:var(--fm);font-size:10px;background:var(--bg-inset);border:1px solid var(--border-md);border-radius:20px;padding:2px 8px;color:var(--t3);margin-right:4px;margin-bottom:2px}
-
-/* Weight table */
-.wt-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
-.wt-table th{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border-md)}
-.wt-table td{padding:9px 10px;border-bottom:1px solid var(--border-lo);color:var(--t2);font-family:var(--fm);font-size:12px}
-.wt-table tr:last-child td{border-bottom:none}
-.wt-bar-cell{width:120px}
-.wt-bar{height:4px;background:var(--border-lo);border-radius:4px;overflow:hidden}
-.wt-bar-fill{height:100%;background:var(--indigo);border-radius:4px}
-.wt-table td:first-child{color:var(--t1);font-weight:500;font-family:var(--fb);font-size:12px}
-
-/* Disclaimer */
-.disc{padding:14px 16px;background:var(--bg-inset);border:1px solid var(--border-lo);border-radius:var(--rmd);font-size:11px;color:var(--t3);font-family:var(--fm);line-height:1.7;margin-top:6px}
 
 /* Footer */
-footer{position:relative;z-index:1;border-top:1px solid var(--border-lo);padding:20px 52px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--t3);font-family:var(--fm);background:var(--bg-surf)}
-.fbadges{display:flex;gap:7px}
-.fbadge{padding:2px 9px;border:1px solid var(--border-md);border-radius:20px;font-size:10px;background:var(--bg-card)}
+footer{position:relative;z-index:1;border-top:1px solid var(--b0);padding:18px 52px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--t3);font-family:var(--fm);background:var(--bg-s)}
+.fbadges{display:flex;gap:6px}
+.fbadge{padding:2px 8px;border:1px solid var(--b1);border-radius:20px;font-size:10px;background:var(--bg-c)}
 
-@media(max-width:900px){
-  .nav,.hero,.config-wrap,.results-wrap{padding-left:20px;padding-right:20px}
-  footer{padding-left:20px;padding-right:20px;flex-direction:column;gap:10px}
-  .config-grid,.results-grid,.method-grid{grid-template-columns:1fr}
-  .res-card.full,.method-card.full{grid-column:auto}
-  h1{font-size:36px}
+@media(max-width:1024px){
+  .region-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:860px){
+  .nav,.region-hero,.region-section,.region-continue,.config-wrap,.res-wrap{padding-left:20px;padding-right:20px}
+  footer{padding-left:20px;padding-right:20px;flex-direction:column;gap:8px}
+  .region-hero{grid-template-columns:1fr;gap:28px;padding:56px 20px 40px}
+  .region-grid{grid-template-columns:1fr 1fr}
+  .config-grid,.rg,.mg{grid-template-columns:1fr}
+  .config-page-hdr{flex-direction:column;align-items:flex-start;gap:16px}
+  .rcard.full,.mc.full{grid-column:auto}
+  .score-strip{grid-template-columns:auto 1fr}
+  .score-rt{display:none}
+}
+@media(max-width:560px){
+  .region-grid{grid-template-columns:1fr}
+  h1{font-size:36px!important}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     PAGE 1 — INPUT
-═══════════════════════════════════════════════════════════════ -->
-<div class="page-wrap">
-<div class="page" id="page-input">
-
+<!-- ════════════════════════════════════════════
+     PAGE 0 — REGION SELECTOR
+════════════════════════════════════════════ -->
+<div id="page-region">
   <nav class="nav">
     <div class="nav-brand">
-      <div class="nav-mark">
-        <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="white" stroke-width="1.5"/><path d="M7 4v3.5L9 9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
-      </div>
+      <div class="nav-mark"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="white" stroke-width="1.4"/><path d="M6.5 4v3L8 8.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg></div>
       <div class="nav-name">CMES<span>· Critical Material Exposure Score</span></div>
     </div>
-    <div class="nav-right">
-      <span class="nav-pill">v1.0 · DEMO</span>
-    </div>
+    <div class="nav-r"><span class="nav-chip">v1.0 · DEMO</span></div>
   </nav>
 
-  <div class="hero">
-    <div class="hero-eyebrow">Building supply chain intelligence</div>
-    <h1>Know your <em>materials risk</em><br>before you break ground.</h1>
-    <p class="hero-sub">Input your building's clean-energy systems and receive a scored analysis of your exposure to critical mineral supply chain disruption — with design-stage interventions, full calculation transparency, and data provenance.</p>
-  </div>
+  <div class="region-page">
+    <div class="region-hero">
+      <div class="region-hero-bg"></div>
+      <div class="region-hero-orb1"></div>
+      <div class="region-hero-orb2"></div>
 
-  <div class="config-wrap">
-    <div class="config-grid">
-
-      <!-- LEFT: Form -->
-      <div class="panel">
-        <div class="panel-hdr"><span class="phd"></span>Configure your building</div>
-
-        <div class="fsec">
-          <div class="fsec-hdr">
-            <span class="fsec-lbl">Solar PV</span>
-            <label class="tog"><input type="checkbox" id="pv_e" checked onchange="updateSummary()"><span class="tsl"></span></label>
-          </div>
-          <div id="pv_f">
-            <div class="frow"><label>Panel type</label>
-              <select id="pv_t" onchange="updateSummary()">
-                <option value="mono_Si">Mono-Si (standard)</option>
-                <option value="low_silver_mono">Mono-Si low-silver (next-gen)</option>
-                <option value="poly_Si">Poly-Si</option>
-                <option value="thin_film_CdTe">Thin-film CdTe</option>
-              </select>
-            </div>
-            <div class="frow"><label>Installed capacity</label>
-              <div class="iu"><input type="number" id="pv_kwp" value="40" min="1" max="5000" oninput="updateSummary()"><span class="ubg">kWp</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fsec">
-          <div class="fsec-hdr">
-            <span class="fsec-lbl">Battery Storage</span>
-            <label class="tog"><input type="checkbox" id="bat_e" checked onchange="updateSummary()"><span class="tsl"></span></label>
-          </div>
-          <div id="bat_f">
-            <div class="frow"><label>Battery chemistry</label>
-              <select id="bat_t" onchange="updateSummary()">
-                <option value="NMC_622">NMC 622 (standard)</option>
-                <option value="NMC_811">NMC 811 (high nickel)</option>
-                <option value="LFP">LFP (lithium iron phosphate)</option>
-              </select>
-            </div>
-            <div class="frow"><label>Usable capacity</label>
-              <div class="iu"><input type="number" id="bat_kwh" value="100" min="1" max="10000" oninput="updateSummary()"><span class="ubg">kWh</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fsec">
-          <div class="fsec-hdr">
-            <span class="fsec-lbl">Heat Pump</span>
-            <label class="tog"><input type="checkbox" id="hp_e" checked onchange="updateSummary()"><span class="tsl"></span></label>
-          </div>
-          <div id="hp_f">
-            <div class="frow"><label>Heat pump type</label>
-              <select id="hp_t" onchange="updateSummary()">
-                <option value="air_source_standard">Air source (standard)</option>
-                <option value="air_source_RE_free">Air source (rare-earth free)</option>
-                <option value="ground_source">Ground source</option>
-              </select>
-            </div>
-            <div class="frow"><label>Heating capacity</label>
-              <div class="iu"><input type="number" id="hp_kw" value="20" min="1" max="500" oninput="updateSummary()"><span class="ubg">kW</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fsec">
-          <div class="fsec-hdr">
-            <span class="fsec-lbl">EV Charging</span>
-            <label class="tog"><input type="checkbox" id="ev_e" checked onchange="updateSummary()"><span class="tsl"></span></label>
-          </div>
-          <div id="ev_f">
-            <div class="frow"><label>Charger type</label>
-              <select id="ev_t" onchange="updateSummary()">
-                <option value="AC_7kW">AC 7kW (residential / light commercial)</option>
-                <option value="AC_22kW">AC 22kW (commercial)</option>
-                <option value="DC_50kW">DC 50kW (fast charge)</option>
-              </select>
-            </div>
-            <div class="frow"><label>Number of charger units</label>
-              <div class="iu"><input type="number" id="ev_units" value="4" min="1" max="100" oninput="updateSummary()"><span class="ubg">units</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fsec">
-          <div class="fsec-hdr"><span class="fsec-lbl">Wiring</span></div>
-          <div class="frow"><label>Copper wiring (4mm² circuits)</label>
-            <div class="iu"><input type="number" id="wire_cu" value="600" min="0" max="50000" oninput="updateSummary()"><span class="ubg">metres</span></div>
-          </div>
-          <div class="frow"><label>Copper wiring (6mm² circuits)</label>
-            <div class="iu"><input type="number" id="wire_cu6" value="300" min="0" max="50000" oninput="updateSummary()"><span class="ubg">metres</span></div>
-          </div>
-          <div class="frow"><label>Aluminium wiring (sub-mains)</label>
-            <div class="iu"><input type="number" id="wire_al" value="0" min="0" max="50000" oninput="updateSummary()"><span class="ubg">metres</span></div>
-          </div>
-        </div>
-
-        <button class="calc-btn" onclick="goToResults()">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5v12M1.5 7.5h12" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
-          Generate CMES Report
-        </button>
+      <!-- Left: headline -->
+      <div class="region-hero-inner">
+        <div class="eyebrow">Building supply chain intelligence</div>
+        <h1>Know your <em>materials risk</em><br>before you break ground.</h1>
+        <p class="region-hero-sub">The first design-stage tool that quantifies critical mineral supply chain exposure for buildings. Select your region below to calibrate the score to your regulatory framework and policy thresholds.</p>
       </div>
 
-      <!-- RIGHT: Summary + Methodology preview -->
-      <div class="summary-panel">
-        <div class="sum-card">
-          <div class="sum-card-title">Configuration summary</div>
-          <div id="sys_rows"></div>
+      <!-- Right: 4 stat cards -->
+      <div class="region-hero-right">
+        <div class="hero-stat-card">
+          <div class="hsc-num">95%</div>
+          <div class="hsc-lbl">of silicon refined in China — no substitution path in crystalline PV</div>
         </div>
-
-        <div class="methodology-preview">
-          <div class="mp-title">Built on verified data</div>
-          <div class="mp-body">Every score in this tool is derived from peer-reviewed and institutional sources. The full calculation, weights, and data provenance are shown in the results report under the Methodology tab.</div>
-          <div class="mp-sources">
-            <div class="mp-source">IEA Critical Minerals Market Review 2024 — geopolitical concentration and supply trajectory scores</div>
-            <div class="mp-source">NREL Life Cycle Assessment Harmonisation — material intensity data (kg/kWp, kg/kWh, kg/kW)</div>
-            <div class="mp-source">World Bank Governance Indicators — political stability scores for mining and refining nations</div>
-            <div class="mp-source">Herfindahl-Hirschman Index — market concentration calculations for mining and refining</div>
-            <div class="mp-source">EU Critical Raw Materials Act (2024) — regulatory watchlist alignment</div>
-          </div>
+        <div class="hero-stat-card">
+          <div class="hsc-num">70%</div>
+          <div class="hsc-lbl">of cobalt mined in DRC — active export restrictions since 2025</div>
         </div>
-
-        <div class="disc">⚠ CMES v1.0 · Indicative values for design-stage assessment only. Not for commercial reporting without EPD verification. All material intensity values confidence level 3–5 from IEA/NREL datasets.</div>
+        <div class="hero-stat-card">
+          <div class="hsc-num">16 yrs</div>
+          <div class="hsc-lbl">average mine-to-production lag — copper demand nearly doubles by 2035</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="hsc-num">Zero</div>
+          <div class="hsc-lbl">tools existed at building design stage for material supply chain risk — until now</div>
+        </div>
       </div>
+    </div>
 
+    <div class="region-section">
+      <div class="region-section-title">Select your region</div>
+      <div class="region-grid" id="region-grid"></div>
+    </div>
+
+    <div class="region-continue">
+      <button class="region-btn" id="region-btn" onclick="goToInput()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Continue with <span id="btn-region-label" style="font-style:italic;margin-left:4px">selected region</span>
+      </button>
     </div>
   </div>
 
   <footer>
     <div>CMES · Critical Material Exposure Score · 2026</div>
-    <div class="fbadges">
-      <span class="fbadge">IEA 2024</span>
-      <span class="fbadge">NREL LCA</span>
-      <span class="fbadge">EU CRMA aligned</span>
-      <span class="fbadge">HHI methodology</span>
-    </div>
+    <div class="fbadges"><span class="fbadge">IEA 2024</span><span class="fbadge">NREL LCA</span><span class="fbadge">EU CRMA</span><span class="fbadge">HHI method</span></div>
   </footer>
 </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     PAGE 2 — RESULTS DASHBOARD
-═══════════════════════════════════════════════════════════════ -->
-<div class="page" id="page-results">
-
-  <nav class="nav" style="position:sticky">
+<!-- ════════════════════════════════════════════
+     PAGE 1 — INPUT
+════════════════════════════════════════════ -->
+<div id="page-input">
+  <nav class="nav">
     <div class="nav-brand">
-      <div class="nav-mark">
-        <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="white" stroke-width="1.5"/><path d="M7 4v3.5L9 9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
-      </div>
+      <div class="nav-mark"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="white" stroke-width="1.4"/><path d="M6.5 4v3L8 8.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg></div>
       <div class="nav-name">CMES<span>· Critical Material Exposure Score</span></div>
     </div>
-    <div class="nav-right">
-      <button class="nav-back" onclick="goBack()">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="nav-r">
+      <div class="nav-region-badge" id="nav-region-badge" onclick="goBack('region')">
+        <span id="nav-flag">🌍</span><span id="nav-region-name">Region</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <div class="input-body">
+    <div class="config-wrap">
+
+      <!-- Page header — spans full width above grid -->
+      <div class="config-page-hdr">
+        <div class="config-page-hdr-left">
+          <h2>Configure your <em>building systems</em></h2>
+          <p class="config-page-sub">Enter installed capacities for each energy system. Material quantities are calculated from IEA/NREL intensity factors and scored across six supply chain risk dimensions.</p>
+        </div>
+        <div class="config-page-hdr-right" id="input-region-card">
+          <div class="ihr-lbl">Active region</div>
+          <div class="ihr-inner">
+            <div class="ihr-flag" id="ihr-flag">🌍</div>
+            <div class="ihr-text">
+              <div class="ihr-name" id="ihr-name">—</div>
+              <div class="ihr-threshold" id="ihr-threshold">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-grid">
+        <!-- LEFT: Form -->
+        <div class="panel">
+          <div class="panel-hdr"><span class="phd"></span>Energy systems</div>
+
+          <div class="fsec">
+            <div class="fsec-hdr active-sys" id="fsec_hdr_pv"><span class="fsec-lbl">Solar PV</span><label class="tog"><input type="checkbox" id="pv_e" checked onchange="updateSummary()"><span class="tsl"></span></label></div>
+            <div id="pv_f">
+              <div class="frow"><label>Panel type</label>
+                <select id="pv_t" onchange="updateSummary()">
+                  <option value="mono_Si">Mono-Si (standard)</option>
+                  <option value="low_silver_mono">Mono-Si low-silver (next-gen)</option>
+                  <option value="poly_Si">Poly-Si</option>
+                  <option value="thin_film_CdTe">Thin-film CdTe</option>
+                </select>
+              </div>
+              <div class="frow"><label>Installed capacity</label><div class="iu"><input type="number" id="pv_kwp" value="40" min="1" max="5000" oninput="updateSummary()"><span class="ubg">kWp</span></div></div>
+            </div>
+          </div>
+
+          <div class="fsec">
+            <div class="fsec-hdr active-sys" id="fsec_hdr_bat"><span class="fsec-lbl">Battery Storage</span><label class="tog"><input type="checkbox" id="bat_e" checked onchange="updateSummary()"><span class="tsl"></span></label></div>
+            <div id="bat_f">
+              <div class="frow"><label>Battery chemistry</label>
+                <select id="bat_t" onchange="updateSummary()">
+                  <option value="NMC_622">NMC 622 (standard)</option>
+                  <option value="NMC_811">NMC 811 (high nickel)</option>
+                  <option value="LFP">LFP (lithium iron phosphate)</option>
+                </select>
+              </div>
+              <div class="frow"><label>Usable capacity</label><div class="iu"><input type="number" id="bat_kwh" value="100" min="1" max="10000" oninput="updateSummary()"><span class="ubg">kWh</span></div></div>
+            </div>
+          </div>
+
+          <div class="fsec">
+            <div class="fsec-hdr active-sys" id="fsec_hdr_hp"><span class="fsec-lbl">Heat Pump</span><label class="tog"><input type="checkbox" id="hp_e" checked onchange="updateSummary()"><span class="tsl"></span></label></div>
+            <div id="hp_f">
+              <div class="frow"><label>Heat pump type</label>
+                <select id="hp_t" onchange="updateSummary()">
+                  <option value="air_source_standard">Air source (standard)</option>
+                  <option value="air_source_RE_free">Air source (rare-earth free)</option>
+                  <option value="ground_source">Ground source</option>
+                </select>
+              </div>
+              <div class="frow"><label>Heating capacity</label><div class="iu"><input type="number" id="hp_kw" value="20" min="1" max="500" oninput="updateSummary()"><span class="ubg">kW</span></div></div>
+            </div>
+          </div>
+
+          <div class="fsec">
+            <div class="fsec-hdr active-sys" id="fsec_hdr_ev"><span class="fsec-lbl">EV Charging</span><label class="tog"><input type="checkbox" id="ev_e" checked onchange="updateSummary()"><span class="tsl"></span></label></div>
+            <div id="ev_f">
+              <div class="frow"><label>Charger type</label>
+                <select id="ev_t" onchange="updateSummary()">
+                  <option value="AC_7kW">AC 7kW (residential / light commercial)</option>
+                  <option value="AC_22kW">AC 22kW (commercial)</option>
+                  <option value="DC_50kW">DC 50kW (fast charge)</option>
+                </select>
+              </div>
+              <div class="frow"><label>Number of charger units</label><div class="iu"><input type="number" id="ev_units" value="4" min="1" max="100" oninput="updateSummary()"><span class="ubg">units</span></div></div>
+            </div>
+          </div>
+
+          <div class="fsec">
+            <div class="fsec-hdr"><span class="fsec-lbl">Wiring</span></div>
+            <div class="frow"><label>Copper wiring (4mm²)</label><div class="iu"><input type="number" id="wire_cu" value="600" min="0" oninput="updateSummary()"><span class="ubg">metres</span></div></div>
+            <div class="frow"><label>Copper wiring (6mm²)</label><div class="iu"><input type="number" id="wire_cu6" value="300" min="0" oninput="updateSummary()"><span class="ubg">metres</span></div></div>
+            <div class="frow"><label>Aluminium wiring (sub-mains)</label><div class="iu"><input type="number" id="wire_al" value="0" min="0" oninput="updateSummary()"><span class="ubg">metres</span></div></div>
+          </div>
+
+          <button class="calc-btn" onclick="goToResults()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v10M1.5 6.5h10" stroke="white" stroke-width="1.7" stroke-linecap="round"/></svg>
+            Generate CMES Report
+          </button>
+        </div>
+
+        <!-- RIGHT: Animated live sidebar -->
+        <div class="summary-col">
+
+          <!-- Live system status -->
+          <div class="sidebar-card">
+            <div class="sb-title">Systems configured</div>
+            <div class="sys-pills" id="sys_pills">
+              <div class="sys-pill active" id="pill_pv">
+                <div class="sys-pill-icon" style="background:#EEF2FF">☀️</div>
+                <div class="sys-pill-info">
+                  <div class="sys-pill-name">Solar PV</div>
+                  <div class="sys-pill-val" id="pill_pv_val">40 kWp · Mono-Si</div>
+                </div>
+              </div>
+              <div class="sys-pill active" id="pill_bat">
+                <div class="sys-pill-icon" style="background:#FEF2F2">🔋</div>
+                <div class="sys-pill-info">
+                  <div class="sys-pill-name">Battery</div>
+                  <div class="sys-pill-val" id="pill_bat_val">100 kWh · NMC 622</div>
+                </div>
+              </div>
+              <div class="sys-pill active" id="pill_hp">
+                <div class="sys-pill-icon" style="background:#F0FDF4">♨️</div>
+                <div class="sys-pill-info">
+                  <div class="sys-pill-name">Heat pump</div>
+                  <div class="sys-pill-val" id="pill_hp_val">20 kW · Air source</div>
+                </div>
+              </div>
+              <div class="sys-pill active" id="pill_ev">
+                <div class="sys-pill-icon" style="background:#FFFBEB">⚡</div>
+                <div class="sys-pill-info">
+                  <div class="sys-pill-name">EV charging</div>
+                  <div class="sys-pill-val" id="pill_ev_val">4 units · AC 7kW</div>
+                </div>
+              </div>
+              <div class="sys-pill active" id="pill_wire">
+                <div class="sys-pill-icon" style="background:#F5F3FF">🔌</div>
+                <div class="sys-pill-info">
+                  <div class="sys-pill-name">Wiring</div>
+                  <div class="sys-pill-val" id="pill_wire_val">900m copper</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live risk preview -->
+            <div class="risk-preview">
+              <div class="rp-title">Estimated risk profile</div>
+              <div class="rp-row">
+                <span class="rp-label">Geopolitical</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_geo" style="width:0%;background:#DC2626"></div></div>
+              </div>
+              <div class="rp-row">
+                <span class="rp-label">Supply</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_sup" style="width:0%;background:#D97706"></div></div>
+              </div>
+              <div class="rp-row">
+                <span class="rp-label">Recyclability</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_rec" style="width:0%;background:#CA8A04"></div></div>
+              </div>
+              <div class="rp-row">
+                <span class="rp-label">Embodied C</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_car" style="width:0%;background:#059669"></div></div>
+              </div>
+              <div class="rp-row">
+                <span class="rp-label">Substitution</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_sub" style="width:0%;background:#6B7280"></div></div>
+              </div>
+              <div class="rp-row">
+                <span class="rp-label">Regulatory</span>
+                <div class="rp-bar-track"><div class="rp-bar-fill" id="rpb_reg" style="width:0%;background:#7C3AED"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Policy context -->
+          <div class="region-policy-card" id="policy-card"></div>
+
+          <!-- Sources -->
+          <div class="sources-card">
+            <div class="sources-ttl">Data sources</div>
+            <div class="source-row">IEA Critical Minerals Market Review 2024</div>
+            <div class="source-row">NREL LCA Harmonisation (kg/kWp, kg/kWh, kg/kW)</div>
+            <div class="source-row">World Bank Governance Indicators</div>
+            <div class="source-row">Herfindahl-Hirschman Index</div>
+            <div class="source-row">EU Critical Raw Materials Act 2024</div>
+          </div>
+
+          <div class="disc">⚠ CMES v1.0 · Design-stage assessment only. Not for commercial reporting without EPD verification.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div>CMES · Critical Material Exposure Score · 2026</div>
+    <div class="fbadges"><span class="fbadge">IEA 2024</span><span class="fbadge">NREL LCA</span><span class="fbadge">EU CRMA</span><span class="fbadge">HHI method</span></div>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 2 — RESULTS
+════════════════════════════════════════════ -->
+<div id="page-results">
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="nav-mark"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="white" stroke-width="1.4"/><path d="M6.5 4v3L8 8.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <div class="nav-name">CMES<span>· Critical Material Exposure Score</span></div>
+    </div>
+    <div class="nav-r">
+      <div class="nav-region-badge" style="pointer-events:none"><span id="res-flag">🌍</span><span id="res-region-name">—</span></div>
+      <button class="nav-back" onclick="goBack('input')">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 2L4 5.5 7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Edit configuration
       </button>
     </div>
   </nav>
 
-  <div class="results-wrap">
-
+  <div class="res-wrap">
     <!-- Score strip -->
-    <div class="score-strip" style="margin-top:28px">
-      <div class="score-ring-wrap" id="score_ring">
-        <svg viewBox="0 0 88 88" fill="none">
-          <circle cx="44" cy="44" r="37" stroke="#E7E5E0" stroke-width="6"/>
-          <circle cx="44" cy="44" r="37" id="score_arc"
-            stroke="#4338CA" stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="232.5" stroke-dashoffset="232.5"
-            transform="rotate(-90 44 44)"
-            style="transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1),stroke .5s"/>
+    <div class="score-strip" style="margin-top:24px">
+      <div class="score-ring" id="score_ring">
+        <svg viewBox="0 0 84 84" fill="none">
+          <circle cx="42" cy="42" r="35" stroke="#E7E5E0" stroke-width="6"/>
+          <circle cx="42" cy="42" r="35" id="score_arc" stroke="#4338CA" stroke-width="6" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="219.9" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1),stroke .5s"/>
         </svg>
         <div class="score-big" id="score_num">—</div>
       </div>
       <div class="score-mid">
-        <div class="score-label">CMES score / 100</div>
+        <div class="score-ey">CMES score / 100</div>
         <div class="score-verdict" id="score_verdict">—</div>
         <div class="score-desc" id="score_desc">—</div>
       </div>
-      <div class="score-meta-right">
-        <div class="score-date" id="score_date">—</div>
-        <div class="score-building" id="score_building">—</div>
+      <div class="score-rt">
+        <div class="score-rt-date" id="score_date">—</div>
+        <div class="score-rt-build" id="score_building">—</div>
       </div>
     </div>
+
+    <!-- Region context banner -->
+    <div class="region-banner" id="region-banner"></div>
 
     <!-- Gauge -->
     <div class="gauge-outer">
-      <div class="gauge-bar" style="position:relative">
-        <div class="gauge-needle" id="gauge_needle"></div>
-      </div>
-      <div class="gauge-ticks">
-        <span>0 · Minimal</span><span>25 · Low</span><span>50 · Medium</span><span>75 · High</span><span>100 · Critical</span>
-      </div>
+      <div class="gauge-bar" style="position:relative"><div class="gauge-needle" id="gauge_needle"></div></div>
+      <div class="gauge-ticks"><span>0 · Minimal</span><span>25 · Low</span><span>50 · Medium</span><span>75 · High</span><span>100 · Critical</span></div>
     </div>
 
-    <!-- Tab bar -->
+    <!-- Tabs -->
     <div class="tab-bar">
       <div class="tab active" onclick="switchTab('results',this)">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="1.5" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="8.5" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="8.5" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="8" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="8" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
         Results
       </div>
       <div class="tab" onclick="switchTab('methodology',this)">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M2 6.5h6M2 9.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Methodology &amp; Sources
       </div>
       <div class="tab" onclick="switchTab('calculation',this)">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 11l3-3 2.5 2L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 10.5l3-3 2 2L10.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Live Calculation
       </div>
     </div>
 
-    <!-- ── TAB: RESULTS ─────────────────────────────────────────── -->
+    <!-- TAB: RESULTS -->
     <div class="tab-pane active" id="tab-results">
-      <div class="results-grid">
-
-        <!-- Planetary boundaries chart -->
-        <div class="res-card full">
-          <div class="rc-title">Risk dimensions — safe operating space</div>
-          <div class="rc-sub">Each wedge represents one scoring dimension. Wedges within the dashed boundary circle sit within safe operating space (score ≤ 60). Wedges extending beyond indicate elevated risk on that dimension, coloured by severity.</div>
-          <div class="pb-wrap"><canvas id="pbChart" role="img" aria-label="Planetary boundaries style risk chart with six wedges"></canvas></div>
-          <div class="pb-legend-row">
-            <div class="pbl"><span class="pbl-dot" style="background:#166534"></span>Safe operating space (≤ 60)</div>
-            <div class="pbl"><span class="pbl-dot" style="background:#CA8A04"></span>Elevated risk (60–75)</div>
-            <div class="pbl"><span class="pbl-dot" style="background:#D97706"></span>High risk (75–90)</div>
-            <div class="pbl"><span class="pbl-dot" style="background:#DC2626"></span>Critical risk (&gt; 90)</div>
+      <div class="rg">
+        <div class="rcard full">
+          <div class="rch">Risk dimensions — safe operating space</div>
+          <div class="rcs">Each wedge is a scoring dimension. The dashed ring is the safe operating boundary — its radius is set to your region's single-origin concentration threshold. Wedges inside = safe. Wedges beyond = elevated risk.</div>
+          <div class="pb-wrap"><canvas id="pbChart" role="img"></canvas></div>
+          <div class="pb-leg">
+            <div class="pbl"><span class="pbl-d" style="background:#166534"></span>Safe operating space</div>
+            <div class="pbl"><span class="pbl-d" style="background:#CA8A04"></span>Elevated (boundary → 75)</div>
+            <div class="pbl"><span class="pbl-d" style="background:#D97706"></span>High (75–90)</div>
+            <div class="pbl"><span class="pbl-d" style="background:#DC2626"></span>Critical (&gt;90)</div>
           </div>
         </div>
-
-        <!-- Material donut -->
-        <div class="res-card">
-          <div class="rc-title">Material exposure</div>
-          <div class="rc-sub">Risk-weighted mass contribution per material</div>
-          <div class="donut-wrap" style="height:200px">
-            <canvas id="matDonut" role="img" aria-label="Donut chart of material risk contribution"></canvas>
-            <div class="donut-center">
-              <span class="dc-num" id="mat_avg">—</span>
-              <span class="dc-lbl">avg score</span>
-            </div>
-          </div>
-          <div class="donut-legend" id="mat_legend"></div>
+        <div class="rcard">
+          <div class="rch">Material exposure</div>
+          <div class="rcs">Risk-weighted mass contribution per material</div>
+          <div class="dw" style="height:190px"><canvas id="matDonut"></canvas><div class="dc"><span class="dcn" id="mat_avg">—</span><span class="dcs">avg score</span></div></div>
+          <div class="dl" id="mat_legend"></div>
         </div>
-
-        <!-- Dimension detail -->
-        <div class="res-card">
-          <div class="rc-title">Dimension detail</div>
-          <div class="rc-sub">Weighted scores across all six axes</div>
+        <div class="rcard">
+          <div class="rch">Dimension detail</div>
+          <div class="rcs">Weighted scores across six axes</div>
           <div class="dim-rows" id="dim_list"></div>
         </div>
-
-        <!-- Material table -->
-        <div class="res-card full">
-          <div class="rc-title">Material inventory</div>
-          <div class="rc-sub">All materials present in your building configuration, sorted by risk score</div>
-          <table class="mt">
-            <thead><tr><th>Material</th><th>Quantity (kg)</th><th>Risk tier</th><th>Score</th><th>Primary risk driver</th></tr></thead>
-            <tbody id="mat_tbody"></tbody>
-          </table>
+        <div class="rcard full">
+          <div class="rch">Material inventory</div>
+          <div class="rcs">All materials in your building, sorted by risk score</div>
+          <table class="mt"><thead><tr><th>Material</th><th>Qty (kg)</th><th>Risk tier</th><th>Score</th><th>Primary risk driver</th></tr></thead><tbody id="mat_tbody"></tbody></table>
         </div>
-
-        <!-- Recommendations -->
-        <div class="res-card full">
-          <div class="rc-title">Design recommendations</div>
-          <div class="rc-sub">Specification changes that reduce your CMES score before ground is broken</div>
+        <div class="rcard full">
+          <div class="rch">Design recommendations</div>
+          <div class="rcs">Specification changes that reduce your CMES score before ground is broken</div>
           <div class="recs" id="recs_list"></div>
         </div>
-
       </div>
     </div>
 
-    <!-- ── TAB: METHODOLOGY ─────────────────────────────────────── -->
+    <!-- TAB: METHODOLOGY -->
     <div class="tab-pane" id="tab-methodology">
-      <div class="method-grid">
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Model overview</div>
+      <div class="mg">
+        <div class="mc full">
+          <div class="mc-ey">Model overview</div>
           <div class="mc-title">How the CMES score is constructed</div>
-          <div class="mc-body">
-            <p>The Critical Material Exposure Score (CMES) is a composite index that quantifies a building's supply chain vulnerability to critical mineral disruption. It produces a single score between 0 and 100, where higher scores indicate greater risk. The methodology is modelled on the planetary boundaries framework — each dimension has a defined safe operating space, and the score measures how far the building's material specification has pushed past that boundary.</p>
-            <p>The calculation proceeds in three stages: first, material quantities are derived from technology-specific intensity factors; second, each material is scored across six risk dimensions; third, scores are aggregated into a single CMES value using dimension weights derived from policy and literature.</p>
-          </div>
-          <div class="formula-box">
-            <span class="eq">CMES = Σ (w_d × D_d)</span><br>
-            where D_d = Σ (kg_m / kg_total) × dim_score(m, d) &nbsp;&nbsp;for each material m<br>
-            and w_d = dimension weight (see table below)<br><br>
-            <span style="color:var(--t3)">Safe operating space boundary: score = 60 &nbsp;·&nbsp; Maps to single-origin concentration ≥ 60% threshold</span>
-          </div>
+          <div class="mc-body"><p>The Critical Material Exposure Score (CMES) is a composite index that quantifies a building's supply chain vulnerability to critical mineral disruption. It is modelled on the planetary boundaries framework — each of six dimensions has a defined safe operating space, and the score measures how far the building's material specification has pushed past that boundary.</p><p>The calculation proceeds in three stages: material quantities are derived from technology-specific intensity factors; each material is scored across six risk dimensions; scores are aggregated using dimension weights derived from policy and literature.</p></div>
+          <div class="fbox"><span class="eq">CMES = Σ (w_d × D_d)</span><br>where D_d = Σ (kg_m / kg_total) × dim_score(m, d) for each material m<br>and w_d = dimension weight (see table below)<br><br><span style="color:var(--t3)">Safe operating space boundary: region-specific single-origin concentration threshold (see region tab)</span></div>
         </div>
-
-        <div class="method-card">
-          <div class="mc-eyebrow">Stage 1</div>
+        <div class="mc">
+          <div class="mc-ey">Stage 1</div>
           <div class="mc-title">Material quantity derivation</div>
-          <div class="mc-body">
-            <p>Material quantities (kg) are calculated by multiplying technology-specific intensity factors against installed capacity. Intensity factors are sourced from NREL LCA Harmonisation studies and IEA technology reviews, representing global average compositions.</p>
-          </div>
-          <div class="formula-box">
-            <span class="eq">kg_m = Σ (intensity_m,t × capacity_t)</span><br>
-            e.g. Silicon (kg) = 5.5 kg/kWp × 40 kWp = 220 kg<br>
-            e.g. Cobalt (kg) = 0.068 kg/kWh × 100 kWh = 6.8 kg
-          </div>
-          <div class="mc-body">
-            <p>Intensity factors carry uncertainty ranges of ±15–25% depending on technology vintage. Values used represent 2023–2024 global averages at IEA confidence level 3–5.</p>
-          </div>
+          <div class="mc-body"><p>Material quantities (kg) = technology intensity factor × installed capacity. Intensity factors from NREL LCA Harmonisation and IEA technology reviews, representing 2023–24 global average compositions.</p></div>
+          <div class="fbox"><span class="eq">kg_m = Σ (intensity_m,t × capacity_t)</span><br>e.g. Silicon = 5.5 kg/kWp × 40 kWp = 220 kg<br>e.g. Cobalt = 0.068 kg/kWh × 100 kWh = 6.8 kg</div>
+          <div class="mc-body"><p>Intensity factors carry ±15–25% uncertainty. Values: IEA/NREL confidence level 3–5.</p></div>
         </div>
-
-        <div class="method-card">
-          <div class="mc-eyebrow">Stage 2</div>
-          <div class="mc-title">Six-dimension risk scoring</div>
-          <div class="mc-body">
-            <p>Each material is scored on six dimensions on a 0–100 scale. Scores are derived from underlying indicators normalised to a common scale, where 100 = maximum risk and 0 = no risk. A mass-weighted average across all materials present gives the building-level dimension score.</p>
-          </div>
-          <table class="wt-table">
-            <thead><tr><th>Dimension</th><th>Weight</th><th>Scale</th><th>Primary indicator</th></tr></thead>
-            <tbody>
-              <tr><td>Geopolitical concentration</td><td>25%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:100%"></div></div></td><td>HHI refining + WB political stability</td></tr>
-              <tr><td>Supply trajectory</td><td>20%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:80%"></div></div></td><td>IEA 2030 demand/supply balance</td></tr>
-              <tr><td>Recyclability</td><td>20%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:80%"></div></div></td><td>End-of-life recycling rate (inverted)</td></tr>
-              <tr><td>Embodied carbon</td><td>15%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:60%"></div></div></td><td>kg CO₂/kg material production</td></tr>
-              <tr><td>Substitution potential</td><td>10%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:40%"></div></div></td><td>Technical substitutability index</td></tr>
-              <tr><td>Regulatory watchlists</td><td>10%</td><td class="wt-bar-cell"><div class="wt-bar"><div class="wt-bar-fill" style="width:40%"></div></div></td><td>UK CMS + EU CRMA list membership</td></tr>
-            </tbody>
-          </table>
+        <div class="mc">
+          <div class="mc-ey">Stage 2 + 3</div>
+          <div class="mc-title">Dimension scoring + aggregation</div>
+          <div class="mc-body"><p>Each material scored on 6 dimensions (0–100, higher = more risk). Mass-weighted average across materials gives the building-level dimension score. Dimension scores combined with policy-derived weights give CMES.</p></div>
+          <table class="wt"><thead><tr><th>Dimension</th><th>Weight</th><th></th><th>Primary indicator</th></tr></thead>
+          <tbody>
+            <tr><td>Geopolitical concentration</td><td>25%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:100%"></div></div></td><td>HHI refining + WB stability</td></tr>
+            <tr><td>Supply trajectory</td><td>20%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:80%"></div></div></td><td>IEA 2030 demand/supply balance</td></tr>
+            <tr><td>Recyclability</td><td>20%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:80%"></div></div></td><td>EOL recycling rate (inverted)</td></tr>
+            <tr><td>Embodied carbon</td><td>15%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:60%"></div></div></td><td>kg CO₂e/kg production</td></tr>
+            <tr><td>Substitution potential</td><td>10%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:40%"></div></div></td><td>Technical substitutability index</td></tr>
+            <tr><td>Regulatory watchlists</td><td>10%</td><td class="wt-bc"><div class="wt-b"><div class="wt-bf" style="width:40%"></div></div></td><td>Regional watchlist membership</td></tr>
+          </tbody></table>
         </div>
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Data provenance</div>
+        <div class="mc full">
+          <div class="mc-ey">Data provenance</div>
           <div class="mc-title">Sources and verification</div>
-          <table class="src-table">
-            <thead><tr><th>Data point</th><th>Source</th><th>Year</th><th>Notes</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>Material intensity factors</td>
-                <td>NREL Life Cycle Assessment Harmonisation Project; IEA Technology Review: Solar PV, Batteries, Heat Pumps</td>
-                <td><span class="src-badge">2022–2024</span></td>
-                <td>Global average values. Technology-specific compositions. ±15–25% uncertainty range.</td>
-              </tr>
-              <tr>
-                <td>Geopolitical concentration</td>
-                <td>World Bank Worldwide Governance Indicators; USGS Mineral Commodity Summaries; IEA Critical Minerals 2024</td>
-                <td><span class="src-badge">2024</span></td>
-                <td>HHI calculated from country-level production shares. Political stability index normalised 0–100.</td>
-              </tr>
-              <tr>
-                <td>Supply-demand trajectory</td>
-                <td>IEA Global Critical Minerals Outlook 2024; BloombergNEF Battery Metal Outlook 2024</td>
-                <td><span class="src-badge">2024</span></td>
-                <td>2030 central-case demand projections against stated mine pipeline. Deficit/surplus classifications.</td>
-              </tr>
-              <tr>
-                <td>Recycling rates</td>
-                <td>UNEP Global Metal Flows Working Group; EU Battery Regulation (2023/1542) baseline rates</td>
-                <td><span class="src-badge">2023</span></td>
-                <td>End-of-life recycling input rate. Inverted: high recycling = low risk score.</td>
-              </tr>
-              <tr>
-                <td>Embodied carbon</td>
-                <td>ecoinvent v3.9; NREL LCIA; Fraunhofer ISI material carbon intensity database</td>
-                <td><span class="src-badge">2023</span></td>
-                <td>kg CO₂e per kg material, cradle-to-gate. Global average production mix.</td>
-              </tr>
-              <tr>
-                <td>Substitution potential</td>
-                <td>European Commission CRM Assessment Methodology (2023); MIT Material Genome Project</td>
-                <td><span class="src-badge">2023</span></td>
-                <td>Expert-assessed technical substitutability on 5-point scale, normalised.</td>
-              </tr>
-              <tr>
-                <td>Regulatory watchlists</td>
-                <td>UK Critical Minerals Strategy 2023 (DESNZ); EU Critical Raw Materials Act 2024</td>
-                <td><span class="src-badge">2024</span></td>
-                <td>Binary watchlist membership, weighted by number of lists and active export restrictions.</td>
-              </tr>
-            </tbody>
-          </table>
+          <table class="st"><thead><tr><th>Data point</th><th>Source</th><th>Year</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Material intensity</td><td>NREL LCA Harmonisation; IEA Technology Reviews (PV, Battery, Heat Pump)</td><td><span class="sbadge">2022–24</span></td><td>Global averages ±15–25% uncertainty</td></tr>
+            <tr><td>Geopolitical score</td><td>World Bank WGI; USGS Mineral Commodity Summaries; IEA CRM 2024</td><td><span class="sbadge">2024</span></td><td>HHI from country production shares; WB stability normalised 0–100</td></tr>
+            <tr><td>Supply trajectory</td><td>IEA Global Critical Minerals Outlook 2024; BloombergNEF Battery Metal Outlook</td><td><span class="sbadge">2024</span></td><td>2030 central-case demand vs mine pipeline</td></tr>
+            <tr><td>Recycling rates</td><td>UNEP Global Metal Flows; EU Battery Regulation 2023/1542</td><td><span class="sbadge">2023</span></td><td>EOL input rate; inverted: high recycling = low risk</td></tr>
+            <tr><td>Embodied carbon</td><td>ecoinvent v3.9; NREL LCIA; Fraunhofer ISI carbon intensity DB</td><td><span class="sbadge">2023</span></td><td>kg CO₂e/kg cradle-to-gate; global average mix</td></tr>
+            <tr><td>Substitutability</td><td>EC CRM Assessment Methodology 2023; MIT Material Genome Project</td><td><span class="sbadge">2023</span></td><td>Expert-assessed 5-point scale, normalised</td></tr>
+            <tr><td>Regulatory lists</td><td>UK CMS 2025 (DESNZ); EU CRMA 2024; US IRA 2022; India MoM 2023; Australia CMList 2024</td><td><span class="sbadge">2024–25</span></td><td>Binary membership weighted by list count + active export restrictions</td></tr>
+          </tbody></table>
         </div>
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Boundary justification</div>
-          <div class="mc-title">Why 60 is the safe operating space threshold</div>
-          <div class="mc-body">
-            <p>The safe operating space boundary on the planetary boundaries chart is set at score 60. This is not arbitrary — it maps to the point at which a single country or entity controls 60% or more of either the mining or refining of a given material. This threshold is the point at which supply chain resilience frameworks — including the UK Critical Minerals Strategy and the EU CRMA — treat concentration as a critical procurement risk requiring diversification or stockpiling policy.</p>
-            <p>Below this threshold, supply disruption from any single geopolitical event is generally absorbable. Above it, the loss of that single supply node creates a market shock that affects all buyers simultaneously, regardless of their individual sourcing strategy. This is the same logic applied in the planetary boundaries framework: crossing a boundary does not guarantee disaster, but it increases the probability of non-linear, hard-to-reverse consequences.</p>
-            <p>Dimension scores below 60 indicate the building's material specification remains within tolerable operating bounds for that dimension. Scores above 60 — the segments of the wedge extending past the dashed ring — represent genuine procurement risk that a design decision made today could reduce.</p>
-          </div>
-        </div>
-
+        <div class="mc full" id="region-methodology-card"></div>
       </div>
     </div>
 
-    <!-- ── TAB: LIVE CALCULATION ────────────────────────────────── -->
+    <!-- TAB: LIVE CALCULATION -->
     <div class="tab-pane" id="tab-calculation">
-      <div class="method-grid">
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Live calculation trace</div>
+      <div class="mg">
+        <div class="mc full">
+          <div class="mc-ey">Live calculation trace</div>
           <div class="mc-title">Your building — step by step</div>
-          <div class="mc-body"><p>The following shows the exact arithmetic used to produce your CMES score, using the values you entered. Every number is traceable to the source data shown in the Methodology tab.</p></div>
+          <div class="mc-body"><p>The following shows the exact arithmetic used to produce your CMES score. Every number traces to the source data in the Methodology tab.</p></div>
         </div>
-
-        <div class="method-card">
-          <div class="mc-eyebrow">Step 1 — Material quantities</div>
-          <div class="mc-title">What's in your building</div>
-          <div class="mc-body"><p>Each technology's installed capacity multiplied by its material intensity factor (kg per unit) gives total material mass.</p></div>
-          <div id="calc_step1"></div>
-        </div>
-
-        <div class="method-card">
-          <div class="mc-eyebrow">Step 2 — Mass weighting</div>
-          <div class="mc-title">Material fractions</div>
-          <div class="mc-body"><p>Each material's share of total mass determines how much it pulls the dimension scores. High-mass materials dominate; trace materials have minimal effect.</p></div>
-          <div id="calc_step2"></div>
-        </div>
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Step 3 — Dimension aggregation</div>
-          <div class="mc-title">From materials to dimensions</div>
-          <div class="mc-body"><p>For each of the six dimensions, a mass-weighted average of individual material scores gives the building-level dimension score. Higher-mass materials pull the dimension score harder.</p></div>
-          <div id="calc_step3"></div>
-        </div>
-
-        <div class="method-card full">
-          <div class="mc-eyebrow">Step 4 — Final score</div>
-          <div class="mc-title">CMES computation</div>
-          <div class="mc-body"><p>The six dimension scores are combined using their policy-derived weights to produce the final CMES score.</p></div>
-          <div id="calc_step4"></div>
-        </div>
-
+        <div class="mc"><div class="mc-ey">Step 1 — Material quantities</div><div class="mc-title">What's in your building</div><div class="mc-body"><p>Installed capacity × intensity factor = material mass.</p></div><div id="calc_s1"></div></div>
+        <div class="mc"><div class="mc-ey">Step 2 — Mass fractions</div><div class="mc-title">Relative contributions</div><div class="mc-body"><p>Each material's share of total mass determines how hard it pulls dimension scores.</p></div><div id="calc_s2"></div></div>
+        <div class="mc full"><div class="mc-ey">Step 3 — Dimension aggregation</div><div class="mc-title">From materials to dimensions</div><div class="mc-body"><p>Mass-weighted average of individual material scores gives each dimension score.</p></div><div id="calc_s3"></div></div>
+        <div class="mc full"><div class="mc-ey">Step 4 — Final score</div><div class="mc-title">CMES computation</div><div class="mc-body"><p>Six dimension scores combined with policy-derived weights.</p></div><div id="calc_s4"></div></div>
       </div>
     </div>
 
-  </div><!-- /results-wrap -->
-
+  </div><!-- /res-wrap -->
   <footer>
     <div>CMES · Critical Material Exposure Score · 2026</div>
-    <div class="fbadges">
-      <span class="fbadge">IEA 2024</span>
-      <span class="fbadge">NREL LCA</span>
-      <span class="fbadge">EU CRMA aligned</span>
-      <span class="fbadge">HHI methodology</span>
-    </div>
+    <div class="fbadges"><span class="fbadge">IEA 2024</span><span class="fbadge">NREL LCA</span><span class="fbadge">EU CRMA</span><span class="fbadge">HHI method</span></div>
   </footer>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
+<!-- ════════════════════════════════════════════
      DATA + LOGIC
-═══════════════════════════════════════════════════════════════ -->
+════════════════════════════════════════════ -->
 <script>
-// ── DATA ──────────────────────────────────────────────────────────
-const MATERIAL_RISK = {
-  neodymium:  { score:91, tier:'critical', recycling:2,  driver:'China near-monopoly on refining (92%) + active export controls on separation technology since 2024' },
-  cobalt:     { score:88, tier:'critical', recycling:5,  driver:'DRC 72% of global mining + active export restrictions since 2025 + conflict zone exposure' },
-  silicon:    { score:85, tier:'critical', recycling:12, driver:'China 95% refining monopoly; structurally hard to substitute in crystalline silicon PV' },
-  graphite:   { score:82, tier:'critical', recycling:3,  driver:'China 65% mining + 90% refining + export restrictions implemented 2023' },
-  lithium:    { score:74, tier:'high',     recycling:1,  driver:'Refining concentration (China 58%) + severe projected supply deficit by 2030 under IEA central case' },
-  copper:     { score:68, tier:'high',     recycling:43, driver:'Global demand nearly doubles by 2035; 16-year average mine-to-production lag constrains supply response' },
-  tellurium:  { score:62, tier:'high',     recycling:4,  driver:'China 55% of mining; thin-film CdTe only; high substitution potential (switch PV technology)' },
-  nickel:     { score:56, tier:'medium',   recycling:35, driver:'Indonesia-China concentration; NMC811 adoption driving demand increase; moderate recycling rate' },
-  phosphorus: { score:44, tier:'medium',   recycling:8,  driver:'China 44% of mining; not on CRM watchlists; LFP-specific; adequate global reserves' },
-  manganese:  { score:40, tier:'medium',   recycling:22, driver:'South Africa + China mining; moderate recycling; lower risk profile than other battery metals' },
-  cadmium:    { score:35, tier:'low',      recycling:15, driver:'Thin-film only; global supply surplus; byproduct of zinc production so availability is stable' },
-  silver:     { score:30, tier:'low',      recycling:38, driver:'Diversified supply (Mexico, Peru, China); ongoing PV silver intensity reduction; active recycling' },
-  aluminium:  { score:22, tier:'low',      recycling:76, driver:'76% end-of-life recycling rate significantly reduces primary supply risk; bauxite widely distributed' },
-  iron:       { score:8,  tier:'very_low', recycling:72, driver:'LFP cathode material; globally abundant; 72% recycling rate; no watchlist presence anywhere' },
+// ── REGION DATA ───────────────────────────────────────────────────
+const REGIONS = {
+  uk: {
+    flag:'🇬🇧', name:'United Kingdom',
+    shortName:'UK',
+    boundary: 60, // UK Vision 2035: no more than 60% from one country
+    policyName:'UK Vision 2035 · Critical Minerals Strategy',
+    color:'#4338CA', colorBg:'#EEF2FF', colorBorder:'rgba(67,56,202,0.13)',
+    pills:[
+      {text:'60% single-origin cap',cls:'safe'},
+      {text:'UK CMS 2025',cls:'safe'},
+      {text:'Lithium + Copper priority',cls:'warn'},
+    ],
+    policyBody:'The UK Vision 2035 sets a hard target that no more than 60% of any one mineral should come from a single country. This is the direct basis for CMES\'s safe operating space boundary when calibrated to the UK. The strategy lists lithium, copper, tungsten, nickel and rare earths as priority minerals, and mandates supply chain resilience assessments under the Procurement Act 2023.',
+    bullets:[
+      '60% single-origin concentration cap (Vision 2035)',
+      'UK Critical Minerals Strategy 2025 (DESNZ)',
+      'Procurement Act 2023 — supply chain resilience required for major public projects',
+      '£50m fund for domestic mineral resilience',
+      '10% domestic production + 20% recycling targets by 2035',
+    ],
+    methodNote:'The safe operating space boundary is set at score 60, mapping directly to the UK Government\'s 60% single-origin concentration cap. Any dimension score exceeding 60 indicates the building\'s material mix has breached this policy threshold on that axis.'
+  },
+  eu: {
+    flag:'🇪🇺', name:'European Union',
+    shortName:'EU',
+    boundary: 65,
+    policyName:'EU Critical Raw Materials Act 2024',
+    color:'#1D4ED8', colorBg:'#EFF6FF', colorBorder:'rgba(29,78,216,0.13)',
+    pills:[
+      {text:'65% single-country cap',cls:'safe'},
+      {text:'EU CRMA 2024',cls:'safe'},
+      {text:'34 CRMs · 17 Strategic',cls:'warn'},
+    ],
+    policyBody:'The EU Critical Raw Materials Act (Regulation 2024/1252) sets a benchmark that no more than 65% of the EU\'s annual consumption of any strategic raw material should come from a single third country. This is stricter than the UK cap and reflects the EU\'s larger industrial base and greater exposure to Chinese refining concentration.',
+    bullets:[
+      '65% single third-country cap (CRMA 2024)',
+      '34 critical + 17 strategic raw materials identified',
+      '40% EU domestic processing by 2030',
+      '25% recycled content by 2030',
+      'Germany Rohstofffonds €1bn fund (2024)',
+    ],
+    methodNote:'The safe operating space boundary is set at score 65, mapping to the EU CRMA\'s 65% single-country threshold. The EU threshold is less stringent than the UK\'s 60%, reflecting different industrial exposures and the larger multi-country diversification available within the EU27.'
+  },
+  usa: {
+    flag:'🇺🇸', name:'United States',
+    shortName:'USA',
+    boundary: 55,
+    policyName:'Inflation Reduction Act 2022 · Buy American Act',
+    color:'#B91C1C', colorBg:'#FEF2F2', colorBorder:'rgba(185,28,28,0.12)',
+    pills:[
+      {text:'40%→80% domestic content',cls:'warn'},
+      {text:'IRA 2022',cls:'safe'},
+      {text:'DOD 65% domestic threshold',cls:'warn'},
+    ],
+    policyBody:'The US Inflation Reduction Act requires that at least 40% of the value of critical minerals in clean energy systems be processed in the US or FTA-partner countries, rising to 80% by 2028. The Buy American Act sets a 65% domestic content threshold for federal construction (2024–28), rising to 75% from 2029. This makes the US the most stringent regime for domestic content requirements in the CMES tool.',
+    bullets:[
+      'IRA: 40% critical mineral domestic content (→80% by 2028)',
+      'Buy American Act: 65% domestic content for federal construction',
+      'DOE 45X advanced manufacturing credit for domestic production',
+      'Minerals Security Partnership (MSP) — US-led 14-nation alliance',
+      'Export control alignment with allies on Chinese mineral restrictions',
+    ],
+    methodNote:'The safe operating space boundary is set at score 55, reflecting the IRA\'s 40% foreign-sourced cap (i.e. 60% must be domestic/FTA) which maps to a more stringent 55-point boundary in the CMES scoring framework. US projects face the strictest domestic content requirements of any region in the tool.'
+  },
+  india: {
+    flag:'🇮🇳', name:'India',
+    shortName:'India',
+    boundary: 70,
+    policyName:'National Critical Mineral Mission 2024 · Ministry of Mines',
+    color:'#D97706', colorBg:'#FFFBEB', colorBorder:'rgba(217,119,6,0.13)',
+    pills:[
+      {text:'30 critical minerals identified',cls:'warn'},
+      {text:'100% import-dependent (10)',cls:'crit'},
+      {text:'National CMM 2024',cls:'warn'},
+    ],
+    policyBody:'India\'s Ministry of Mines identified 30 critical minerals in 2023, with 10 of these showing complete import dependency. India is 82% dependent on China for lithium, 76% for silicon, and 85%+ for bismuth. The National Critical Mineral Mission (2024) has a ₹34,300 crore outlay to reduce this dependency. Given the high import dependency, the CMES boundary is set at 70 — reflecting that India\'s policy framework is still developing and the risk threshold is higher before active policy mitigation is triggered.',
+    bullets:[
+      '30 critical minerals identified (Ministry of Mines 2023)',
+      '10 minerals: 100% import dependency',
+      'National Critical Mineral Mission — ₹34,300cr outlay',
+      'India joined Minerals Security Partnership (MSP) June 2023',
+      'KABIL: overseas lithium + cobalt acquisition programme',
+    ],
+    methodNote:'The safe operating space boundary is set at score 70, reflecting that India\'s policy framework is still developing. The higher threshold acknowledges that while India has identified the risks, actionable domestic diversification mechanisms are less mature than UK, EU or US equivalents.'
+  },
+  germany: {
+    flag:'🇩🇪', name:'Germany',
+    shortName:'Germany',
+    boundary: 65,
+    policyName:'EU CRMA 2024 · Rohstoffstrategie · Rohstofffonds',
+    color:'#1F2937', colorBg:'#F9FAFB', colorBorder:'rgba(31,41,55,0.13)',
+    pills:[
+      {text:'65% single-country cap',cls:'safe'},
+      {text:'90%+ REE from China',cls:'crit'},
+      {text:'€1bn Rohstofffonds',cls:'warn'},
+    ],
+    policyBody:'Germany applies the EU CRMA 65% single-country cap but faces a particularly acute exposure: over 90% of rare earth metal imports come from China, and between 2013 and 2023 this dependency increased. Germany has launched a €1bn Rohstofffonds (2024) to co-fund critical mineral projects and is pursuing bilateral agreements with Australia, Canada, Namibia, Chile and Indonesia. German buildings using permanent magnet heat pumps or NMC batteries face the highest rare earth and cobalt risk of any EU member state.',
+    bullets:[
+      'EU CRMA 65% single-country cap applies',
+      '90%+ of German REE imports from China (BDI, 2024)',
+      'Rohstofffonds €1bn (KfW, 2024) — co-funding CRM projects',
+      'Australia-Germany CRM joint declaration (2023)',
+      'DIN standards body developing CRM procurement guidance',
+    ],
+    methodNote:'Germany uses the EU CRMA boundary of 65 but has a notably higher structural exposure to Chinese rare earth supply than other EU members. The CMES neodymium score is particularly critical for German buildings using standard heat pumps or DC fast chargers.'
+  },
+  australia: {
+    flag:'🇦🇺', name:'Australia',
+    shortName:'Australia',
+    boundary: 65,
+    policyName:'Critical Minerals Strategy 2023–2030 · 31 minerals list',
+    color:'#065F46', colorBg:'#F0FDF4', colorBorder:'rgba(6,95,70,0.13)',
+    pills:[
+      {text:'31 critical minerals',cls:'safe'},
+      {text:'Major lithium exporter',cls:'safe'},
+      {text:'TSM mandatory 2025+',cls:'warn'},
+    ],
+    policyBody:'Australia is both a major critical mineral producer (dominant in lithium, significant in cobalt, copper and rare earths) and an importer of refined materials. The Critical Minerals Strategy 2023–2030 expanded the critical minerals list to 31 materials and launched a Strategic Materials List for materials important for net zero but not yet critical. The Towards Sustainable Mining (TSM) framework became mandatory for Australian minerals companies from 2025. Australia\'s risk profile is lower on mining-stage supply but elevated on refining-stage concentration, particularly for lithium and rare earth processing (still largely China-dependent).',
+    bullets:[
+      '31 critical minerals list (updated Feb 2024)',
+      'Strategic Materials List: copper, aluminium, phosphorus, tin',
+      'TSM mandatory reporting from 2025',
+      'Australia-US Climate, Critical Minerals & Clean Energy Taskforce',
+      'Australia-Germany + Australia-India CRM partnerships active',
+    ],
+    methodNote:'The boundary is set at 65 aligned with Australia\'s major trading partner frameworks (EU, US). Australian buildings benefit from lower mining-stage supply risk for lithium and cobalt, but refining-stage concentration remains elevated — reflected in the geopolitical dimension scores which track refining, not just mining.'
+  },
 };
 
-const COMPOSITION = {
-  solar_pv: {
-    mono_Si:         { silicon:5.5, silver:0.006, aluminium:0.38, copper:0.04 },
-    low_silver_mono: { silicon:5.4, silver:0.002, aluminium:0.37, copper:0.04 },
-    poly_Si:         { silicon:6.0, silver:0.007, aluminium:0.40, copper:0.04 },
-    thin_film_CdTe:  { tellurium:0.0009, cadmium:0.0007, copper:0.02 },
-  },
-  battery_storage: {
-    LFP:     { lithium:0.085, iron:0.580, phosphorus:0.110, copper:0.090, aluminium:0.065, graphite:0.130 },
-    NMC_622: { lithium:0.095, cobalt:0.068, nickel:0.155, manganese:0.038, copper:0.095, graphite:0.125 },
-    NMC_811: { lithium:0.090, cobalt:0.022, nickel:0.195, manganese:0.022, copper:0.090, graphite:0.120 },
-  },
-  heat_pump: {
-    air_source_standard: { copper:8.5, aluminium:5.2, neodymium:0.048 },
-    air_source_RE_free:  { copper:8.0, aluminium:5.0 },
-    ground_source:       { copper:11.0, aluminium:4.5, neodymium:0.045 },
-  },
-  ev_charger: {
-    AC_7kW:  { copper:3.2, aluminium:1.1 },
-    AC_22kW: { copper:5.5, aluminium:1.8 },
-    DC_50kW: { copper:9.5, aluminium:6.5, neodymium:0.012 },
-  },
-  wiring_copper:    { '4mm2':{ copper:0.034 }, '6mm2':{ copper:0.051 } },
-  wiring_aluminium: { '25mm2':{ aluminium:0.068 } },
-};
-
-const DIMENSIONS = [
-  { key:'geo',     label:'Geopolitical\nconcentration', short:'Geopolitical',        weight:0.25 },
-  { key:'supply',  label:'Supply\ntrajectory',          short:'Supply trajectory',   weight:0.20 },
-  { key:'recycle', label:'Recyclability',               short:'Recyclability',       weight:0.20 },
-  { key:'carbon',  label:'Embodied\ncarbon',            short:'Embodied carbon',     weight:0.15 },
-  { key:'subst',   label:'Substitution\npotential',     short:'Substitutability',    weight:0.10 },
-  { key:'reg',     label:'Regulatory\nwatchlists',      short:'Regulatory',          weight:0.10 },
-];
-
-const DIM_SCORES = {
-  neodymium:  { geo:96, supply:65, recycle:95, carbon:75, subst:55, reg:90 },
-  cobalt:     { geo:94, supply:72, recycle:90, carbon:68, subst:30, reg:92 },
-  silicon:    { geo:92, supply:70, recycle:78, carbon:88, subst:85, reg:88 },
-  graphite:   { geo:90, supply:68, recycle:92, carbon:55, subst:60, reg:86 },
-  lithium:    { geo:75, supply:90, recycle:94, carbon:48, subst:55, reg:82 },
-  copper:     { geo:70, supply:88, recycle:38, carbon:35, subst:80, reg:75 },
-  tellurium:  { geo:72, supply:48, recycle:88, carbon:65, subst:25, reg:45 },
-  nickel:     { geo:62, supply:55, recycle:48, carbon:62, subst:55, reg:72 },
-  phosphorus: { geo:52, supply:42, recycle:80, carbon:22, subst:82, reg:15 },
-  manganese:  { geo:48, supply:38, recycle:62, carbon:28, subst:52, reg:18 },
-  cadmium:    { geo:42, supply:25, recycle:72, carbon:42, subst:22, reg:20 },
-  silver:     { geo:28, supply:30, recycle:38, carbon:15, subst:55, reg:12 },
-  aluminium:  { geo:32, supply:28, recycle:12, carbon:48, subst:52, reg:8  },
-  iron:       { geo:8,  supply:5,  recycle:12, carbon:25, subst:88, reg:5  },
-};
-
-const MAT_COLORS = {
-  neodymium:'#7C3AED', cobalt:'#DC2626', silicon:'#D97706', graphite:'#2563EB',
-  lithium:'#DB2777', copper:'#0891B2', tellurium:'#16A34A', nickel:'#EA580C',
-  phosphorus:'#9333EA', manganese:'#0D9488', cadmium:'#CA8A04',
-  silver:'#64748B', aluminium:'#94A3B8', iron:'#A3A3A3',
-};
-
-// ── HELPERS ────────────────────────────────────────────────────────
-function rc(s) {
-  if (s>=75) return '#DC2626';
-  if (s>=55) return '#D97706';
-  if (s>=35) return '#CA8A04';
-  if (s>=15) return '#059669';
-  return '#6B7280';
-}
-function verdict(s) {
-  if (s>=75) return ['Critical exposure','Immediate design review required. High dependency on conflict minerals and single-origin supply chains.'];
-  if (s>=55) return ['High exposure','Significant supply chain risk. Key substitutions recommended before specification is locked.'];
-  if (s>=35) return ['Moderate exposure','Some material risks present. Targeted substitutions can reduce the score meaningfully.'];
-  if (s>=15) return ['Low exposure','Well-managed material risk. Minor optimisations still available.'];
-  return ['Minimal exposure','Excellent risk profile. Design choices align with low-dependency supply chains.'];
-}
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-function fmt(n){ return n<0.01?n.toFixed(4):n<1?n.toFixed(3):n.toFixed(1); }
-function hex2rgba(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-
-// ── LIVE SUMMARY ON PAGE 1 ─────────────────────────────────────────
-const SYS_LABELS = {
-  pv: id => {
-    if (!document.getElementById('pv_e').checked) return null;
-    const t = document.getElementById('pv_t').value;
-    const tl = {mono_Si:'Mono-Si',low_silver_mono:'Low-silver Si',poly_Si:'Poly-Si',thin_film_CdTe:'Thin-film CdTe'}[t];
-    return { name:'Solar PV', val:`${document.getElementById('pv_kwp').value} kWp · ${tl}` };
-  },
-  bat: () => {
-    if (!document.getElementById('bat_e').checked) return null;
-    const t = document.getElementById('bat_t').value;
-    return { name:'Battery storage', val:`${document.getElementById('bat_kwh').value} kWh · ${t}` };
-  },
-  hp: () => {
-    if (!document.getElementById('hp_e').checked) return null;
-    const t = document.getElementById('hp_t').value;
-    const tl = {air_source_standard:'Air source',air_source_RE_free:'Air source RE-free',ground_source:'Ground source'}[t];
-    return { name:'Heat pump', val:`${document.getElementById('hp_kw').value} kW · ${tl}` };
-  },
-  ev: () => {
-    if (!document.getElementById('ev_e').checked) return null;
-    return { name:'EV charging', val:`${document.getElementById('ev_units').value} units · ${document.getElementById('ev_t').value}` };
-  },
-  wire: () => {
-    const cu = +document.getElementById('wire_cu').value||0;
-    const cu6 = +document.getElementById('wire_cu6').value||0;
-    const al = +document.getElementById('wire_al').value||0;
-    return { name:'Wiring', val:`${cu+cu6}m Cu · ${al}m Al` };
-  }
-};
-
-function updateSummary() {
-  ['pv','bat','hp','ev'].forEach(id => {
-    document.getElementById(id+'_f').style.display = document.getElementById(id+'_e').checked ? 'block' : 'none';
-  });
-  const rows = document.getElementById('sys_rows');
-  rows.innerHTML = '';
-  ['pv','bat','hp','ev','wire'].forEach(k => {
-    const info = SYS_LABELS[k]?.();
-    if (!info) {
-      const names = {pv:'Solar PV',bat:'Battery storage',hp:'Heat pump',ev:'EV charging'}[k];
-      if (names) rows.innerHTML += `<div class="sys-row"><span class="sys-name">${names}</span><span class="sys-val sys-off">Excluded</span></div>`;
-      return;
-    }
-    rows.innerHTML += `<div class="sys-row"><span class="sys-name">${info.name}</span><span class="sys-val">${info.val}</span></div>`;
-  });
-}
-updateSummary();
-
-// ── PAGE TRANSITIONS ───────────────────────────────────────────────
-function goToResults() {
-  calculate();
-  const rp = document.getElementById('page-results');
-  rp.classList.add('active');
-  rp.scrollTop = 0;
-}
-function goBack() {
-  document.getElementById('page-results').classList.remove('active');
-}
-
-// ── TAB SWITCHING ──────────────────────────────────────────────────
-function switchTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
-  if (name === 'results') setTimeout(redrawPB, 80);
-}
-
-// ── PLANETARY BOUNDARIES CHART ────────────────────────────────────
+let selectedRegion = null;
 let _dimScores = {};
 let matChart = null;
 
-function drawPB(dimScores) {
-  _dimScores = dimScores;
-  const canvas = document.getElementById('pbChart');
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.parentElement.clientWidth;
-  const H = W;
-  canvas.width = W * dpr; canvas.height = H * dpr;
-  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+// ── BUILD REGION CARDS ────────────────────────────────────────────
+function buildRegionGrid() {
+  const grid = document.getElementById('region-grid');
+  Object.entries(REGIONS).forEach(([key, r]) => {
+    const card = document.createElement('div');
+    card.className = 'region-card';
+    card.onclick = () => selectRegion(key);
+    card.id = 'rc-'+key;
 
-  const cx = W/2, cy = H/2;
-  const labelPad = 68;
-  const R = Math.min(W,H)/2 - labelPad;
-  const N = DIMENSIONS.length;
-  const sliceAngle = (2*Math.PI)/N;
-  const startAngle = -Math.PI/2 - sliceAngle/2;
+    const thresholdClass = r.boundary <= 55 ? 'crit' : r.boundary <= 62 ? 'warn' : 'safe';
 
-  function sToR(s) { return (s/100)*R; }
-  function polar(a,r) { return { x:cx+r*Math.cos(a), y:cy+r*Math.sin(a) }; }
-
-  // Concentric rings
-  [25,50,75,100].forEach(pct => {
-    const r = sToR(pct);
-    ctx.beginPath();
-    ctx.arc(cx,cy,r,0,2*Math.PI);
-    ctx.strokeStyle='rgba(130,115,95,0.10)';
-    ctx.lineWidth=1;
-    ctx.stroke();
-    if (pct < 100) {
-      ctx.fillStyle='rgba(130,115,95,0.40)';
-      ctx.font=`9px 'DM Mono',monospace`;
-      ctx.textAlign='left';
-      ctx.fillText(pct, cx+r+3, cy-2);
-    }
+    card.innerHTML = `
+      <span class="rc-flag">${r.flag}</span>
+      <div class="rc-name">${r.name}</div>
+      <div class="rc-sub">${r.policyName}</div>
+      <div class="rc-policy">
+        ${r.bullets.slice(0,3).map(b=>`<div class="rc-pol-row">${b}</div>`).join('')}
+      </div>
+      <div style="margin-top:10px">
+        <span class="rc-threshold ${thresholdClass}">Safe boundary: score ${r.boundary}</span>
+      </div>`;
+    grid.appendChild(card);
   });
+}
+buildRegionGrid();
 
-  // Wedges
-  DIMENSIONS.forEach((dim,i) => {
-    const score = Math.round(dimScores[dim.key]);
-    const aStart = startAngle + i*sliceAngle;
-    const aEnd   = aStart + sliceAngle;
-    const aMid   = aStart + sliceAngle/2;
-    const rTip   = sToR(score);
-    const rSafe  = sToR(60);
-    const safeScore = Math.min(score, 60);
-    const rSafeFill = sToR(safeScore);
-
-    // Safe (green) portion
-    if (rSafeFill > 2) {
-      const g1 = ctx.createRadialGradient(cx,cy,0,cx,cy,rSafe);
-      g1.addColorStop(0,  'rgba(20,83,45,0.80)');
-      g1.addColorStop(0.7,'rgba(22,101,52,0.74)');
-      g1.addColorStop(1,  'rgba(22,101,52,0.66)');
-      ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      ctx.arc(cx,cy,rSafeFill,aStart+0.025,aEnd-0.025);
-      ctx.closePath();
-      ctx.fillStyle=g1;
-      ctx.fill();
-    }
-
-    // Risk (coloured) portion
-    if (score > 60) {
-      let tipHex = score>90?'#DC2626':score>75?'#D97706':'#CA8A04';
-      const g2 = ctx.createRadialGradient(cx,cy,rSafe*0.9,cx,cy,rTip);
-      g2.addColorStop(0,   hex2rgba('#166534',0.50));
-      g2.addColorStop(0.25,hex2rgba(tipHex,0.55));
-      g2.addColorStop(1,   hex2rgba(tipHex,0.90));
-      ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      ctx.arc(cx,cy,rTip,aStart+0.025,aEnd-0.025);
-      ctx.closePath();
-      ctx.fillStyle=g2;
-      ctx.fill();
-    }
-
-    // Spoke lines
-    const tipR = Math.max(rTip, rSafe);
-    [aStart, aEnd].forEach(a => {
-      ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      const p = polar(a, tipR);
-      ctx.lineTo(p.x, p.y);
-      ctx.strokeStyle='rgba(255,255,255,0.65)';
-      ctx.lineWidth=1.5;
-      ctx.stroke();
-    });
-
-    // Outer arc border
-    ctx.beginPath();
-    ctx.arc(cx,cy,tipR,aStart+0.02,aEnd-0.02);
-    ctx.strokeStyle='rgba(255,255,255,0.45)';
-    ctx.lineWidth=1;
-    ctx.stroke();
-
-    // Score label at tip
-    const lp = polar(aMid, tipR+11);
-    ctx.fillStyle = rc(score);
-    ctx.font = `600 12px 'Plus Jakarta Sans',sans-serif`;
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillText(score, lp.x, lp.y);
-
-    // Dimension name
-    const nameR = R + labelPad*0.42;
-    const np = polar(aMid, nameR + 10);
-    ctx.fillStyle='#57534E';
-    ctx.font=`500 11px 'Plus Jakarta Sans',sans-serif`;
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    const lines = dim.label.split('\n');
-    const lh = 13;
-    lines.forEach((line,li) => {
-      ctx.fillText(line, np.x, np.y - (lines.length-1)*lh/2 + li*lh);
-    });
-
-    // Weight label
-    const wp = polar(aMid, R + labelPad*0.88);
-    ctx.fillStyle='#A8A29E';
-    ctx.font=`9px 'DM Mono',monospace`;
-    ctx.fillText(Math.round(dim.weight*100)+'%', wp.x, wp.y);
-  });
-
-  // Safe zone inner fill + boundary ring
-  const rSafe = sToR(60);
-  ctx.beginPath();
-  ctx.arc(cx,cy,rSafe,0,2*Math.PI);
-  ctx.fillStyle='rgba(22,101,52,0.05)';
-  ctx.fill();
-
-  ctx.save();
-  ctx.setLineDash([5,5]);
-  ctx.beginPath();
-  ctx.arc(cx,cy,rSafe,0,2*Math.PI);
-  ctx.strokeStyle='rgba(22,101,52,0.65)';
-  ctx.lineWidth=1.8;
-  ctx.stroke();
-  ctx.restore();
-
-  // Centre label
-  ctx.fillStyle='rgba(22,101,52,0.70)';
-  ctx.font=`italic 11px 'Instrument Serif',Georgia,serif`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('Safe operating space', cx, cy-7);
-  ctx.font=`9px 'DM Mono',monospace`;
-  ctx.fillStyle='rgba(22,101,52,0.50)';
-  ctx.fillText('score ≤ 60', cx, cy+7);
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,4,0,2*Math.PI);
-  ctx.fillStyle='rgba(22,101,52,0.65)';
-  ctx.fill();
+function selectRegion(key) {
+  selectedRegion = key;
+  document.querySelectorAll('.region-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('rc-'+key).classList.add('selected');
+  const btn = document.getElementById('region-btn');
+  btn.classList.add('ready');
+  document.getElementById('btn-region-label').textContent = REGIONS[key].name;
 }
 
-function redrawPB() { if (Object.keys(_dimScores).length) drawPB(_dimScores); }
-window.addEventListener('resize', redrawPB);
+// ── NAVIGATION ────────────────────────────────────────────────────
+function goToInput() {
+  if (!selectedRegion) return;
+  applyRegionToInput();
+  document.getElementById('page-region').classList.add('out');
+  const pi = document.getElementById('page-input');
+  pi.classList.add('active');
+  pi.scrollTop = 0;
+  updateSummary();
+// Re-run after data constants are defined to populate live bars
+setTimeout(updateSummary, 100);
+}
+function goToResults() {
+  calculate();
+  const pr = document.getElementById('page-results');
+  pr.classList.add('active');
+  pr.scrollTop = 0;
+}
+function goBack(to) {
+  if (to === 'region') {
+    document.getElementById('page-input').classList.remove('active');
+    document.getElementById('page-region').classList.remove('out');
+  } else {
+    document.getElementById('page-results').classList.remove('active');
+  }
+}
+
+// ── APPLY REGION TO INPUT PAGE ────────────────────────────────────
+function applyRegionToInput() {
+  const r = REGIONS[selectedRegion];
+  // Nav badge
+  document.getElementById('nav-flag').textContent = r.flag;
+  document.getElementById('nav-region-name').textContent = r.shortName;
+  // Hero region card
+  document.getElementById('ihr-flag').textContent = r.flag;
+  document.getElementById('ihr-name').textContent = r.name;
+  document.getElementById('ihr-threshold').textContent = `Safe boundary: score ${r.boundary} · ${r.policyName.split('·')[0].trim()}`;
+  // Policy card
+  const pc = document.getElementById('policy-card');
+  const pillsHTML = r.pills.map(p=>`<span class="rpc-pill" style="background:${p.cls==='crit'?'var(--rc-b)':p.cls==='warn'?'var(--rh-b)':'var(--rl-b)'};color:${p.cls==='crit'?'var(--rc)':p.cls==='warn'?'var(--rh)':'var(--rl)'};border-color:${p.cls==='crit'?'rgba(220,38,38,0.15)':p.cls==='warn'?'rgba(217,119,6,0.15)':'rgba(5,150,105,0.15)'}">${p.text}</span>`).join('');
+  pc.style.background = r.colorBg;
+  pc.style.borderColor = r.colorBorder;
+  pc.innerHTML = `<div class="rpc-title" style="color:${r.color}">${r.flag} ${r.name} — Regulatory context</div><div class="rpc-body">${r.policyBody}</div><div class="rpc-pills">${pillsHTML}</div>`;
+}
+
+// ── SUMMARY UPDATE ────────────────────────────────────────────────
+function updateSummary() {
+  // Show/hide form fields
+  ['pv','bat','hp','ev'].forEach(id=>{
+    const f = document.getElementById(id+'_f');
+    const e = document.getElementById(id+'_e');
+    if(f && e) f.style.display = e.checked ? 'block' : 'none';
+    // Animate section header
+    const hdr = document.getElementById('fsec_hdr_'+id);
+    if(hdr){
+      hdr.classList.toggle('active-sys', e.checked);
+      hdr.classList.toggle('inactive-sys', !e.checked);
+    }
+  });
+
+  // Update system pills
+  const pvOn  = document.getElementById('pv_e')?.checked;
+  const batOn = document.getElementById('bat_e')?.checked;
+  const hpOn  = document.getElementById('hp_e')?.checked;
+  const evOn  = document.getElementById('ev_e')?.checked;
+  const pvT   = document.getElementById('pv_t')?.value||'';
+  const batT  = document.getElementById('bat_t')?.value||'';
+  const hpT   = document.getElementById('hp_t')?.value||'';
+  const evT   = document.getElementById('ev_t')?.value||'';
+  const pvKwp = document.getElementById('pv_kwp')?.value||'0';
+  const batKwh= document.getElementById('bat_kwh')?.value||'0';
+  const hpKw  = document.getElementById('hp_kw')?.value||'0';
+  const evU   = document.getElementById('ev_units')?.value||'0';
+  const cu    = (+document.getElementById('wire_cu')?.value||0) + (+document.getElementById('wire_cu6')?.value||0);
+  const al    = +document.getElementById('wire_al')?.value||0;
+
+  const pvLabels  = {mono_Si:'Mono-Si',low_silver_mono:'Low-Ag Si',poly_Si:'Poly-Si',thin_film_CdTe:'Thin-film'};
+  const batLabels = {NMC_622:'NMC 622',NMC_811:'NMC 811',LFP:'LFP'};
+  const hpLabels  = {air_source_standard:'Air source',air_source_RE_free:'RE-free',ground_source:'Ground'};
+  const evLabels  = {AC_7kW:'AC 7kW',AC_22kW:'AC 22kW',DC_50kW:'DC 50kW'};
+
+  function setPill(id, on, val) {
+    const p = document.getElementById('pill_'+id);
+    const v = document.getElementById('pill_'+id+'_val');
+    if(p) { p.classList.toggle('active',on); p.classList.toggle('inactive',!on); }
+    if(v) v.textContent = on ? val : 'Excluded';
+  }
+  setPill('pv',  pvOn,  `${pvKwp} kWp · ${pvLabels[pvT]||pvT}`);
+  setPill('bat', batOn, `${batKwh} kWh · ${batLabels[batT]||batT}`);
+  setPill('hp',  hpOn,  `${hpKw} kW · ${hpLabels[hpT]||hpT}`);
+  setPill('ev',  evOn,  `${evU} units · ${evLabels[evT]||evT}`);
+  const wireVal = (cu>0||al>0) ? `${cu>0?cu+'m Cu':''}${cu>0&&al>0?' + ':''}${al>0?al+'m Al':''}` : 'None';
+  setPill('wire', cu>0||al>0, wireVal);
+
+  // Live risk preview bars — estimate from materials
+  const mats = {};
+  function addM(comp,qty){ if(!comp||!qty) return; Object.entries(comp).forEach(([m,k])=>{ mats[m]=(mats[m]||0)+k*qty; }); }
+  if(pvOn)  addM(COMP?.solar_pv?.[pvT],  +pvKwp);
+  if(batOn) addM(COMP?.battery?.[batT],  +batKwh);
+  if(hpOn)  addM(COMP?.heat_pump?.[hpT], +hpKw);
+  if(evOn)  addM(COMP?.ev_charger?.[evT],+evU);
+  if(COMP?.wire_cu4)  addM(COMP.wire_cu4,  +document.getElementById('wire_cu')?.value||0);
+  if(COMP?.wire_cu6)  addM(COMP.wire_cu6,  +document.getElementById('wire_cu6')?.value||0);
+  if(COMP?.wire_al)   addM(COMP.wire_al,   +document.getElementById('wire_al')?.value||0);
+
+  const ml = Object.entries(mats).filter(([,k])=>k>0.0001);
+  const tot = ml.reduce((s,[,k])=>s+k, 0);
+
+  if(ml.length && tot > 0 && typeof DS !== 'undefined' && typeof DIMS !== 'undefined') {
+    DIMS.forEach(d=>{
+      let ws=0,wt=0;
+      ml.forEach(([m,k])=>{ if(DS[m]){ ws+=DS[m][d.key]*(k/tot); wt+=k/tot; } });
+      const score = wt>0 ? Math.round(ws/wt) : 0;
+      const bar = document.getElementById('rpb_'+d.key);
+      if(bar){
+        bar.style.width = score+'%';
+        bar.style.background = typeof rc==='function' ? rc(score) : '#6B7280';
+      }
+    });
+  }
+}
+
+// ── DATA ──────────────────────────────────────────────────────────
+const MAT = {
+  neodymium:  {score:91,tier:'critical',driver:'China 92% refining monopoly + active export controls on separation technology'},
+  cobalt:     {score:88,tier:'critical',driver:'DRC 72% mining + active export restrictions since 2025 + conflict zone'},
+  silicon:    {score:85,tier:'critical',driver:'China 95% refining monopoly; no substitution path in crystalline silicon PV'},
+  graphite:   {score:82,tier:'critical',driver:'China 65% mining + 90% refining + export restrictions 2023'},
+  lithium:    {score:74,tier:'high',    driver:'China 58% refining + IEA projects severe supply deficit by 2030'},
+  copper:     {score:68,tier:'high',    driver:'Global demand doubles by 2035; 16-year mine-to-production lag'},
+  tellurium:  {score:62,tier:'high',    driver:'China 55% mining; CdTe thin-film only; high substitution potential'},
+  nickel:     {score:56,tier:'medium',  driver:'Indonesia-China concentration; NMC811 adoption driving demand growth'},
+  phosphorus: {score:44,tier:'medium',  driver:'China 44% mining; LFP-specific; adequate global reserves'},
+  manganese:  {score:40,tier:'medium',  driver:'South Africa + China; moderate recycling; lower risk than battery metals'},
+  cadmium:    {score:35,tier:'low',     driver:'Thin-film only; supply surplus; byproduct of zinc'},
+  silver:     {score:30,tier:'low',     driver:'Diversified supply; ongoing PV intensity reduction'},
+  aluminium:  {score:22,tier:'low',     driver:'76% EOL recycling rate; bauxite widely distributed globally'},
+  iron:       {score:8, tier:'very_low',driver:'LFP cathode; globally abundant; 72% recycling; no watchlist presence'},
+};
+const COMP = {
+  solar_pv:{
+    mono_Si:{silicon:5.5,silver:0.006,aluminium:0.38,copper:0.04},
+    low_silver_mono:{silicon:5.4,silver:0.002,aluminium:0.37,copper:0.04},
+    poly_Si:{silicon:6.0,silver:0.007,aluminium:0.40,copper:0.04},
+    thin_film_CdTe:{tellurium:0.0009,cadmium:0.0007,copper:0.02},
+  },
+  battery:{
+    LFP:{lithium:0.085,iron:0.580,phosphorus:0.110,copper:0.090,aluminium:0.065,graphite:0.130},
+    NMC_622:{lithium:0.095,cobalt:0.068,nickel:0.155,manganese:0.038,copper:0.095,graphite:0.125},
+    NMC_811:{lithium:0.090,cobalt:0.022,nickel:0.195,manganese:0.022,copper:0.090,graphite:0.120},
+  },
+  heat_pump:{
+    air_source_standard:{copper:8.5,aluminium:5.2,neodymium:0.048},
+    air_source_RE_free:{copper:8.0,aluminium:5.0},
+    ground_source:{copper:11.0,aluminium:4.5,neodymium:0.045},
+  },
+  ev_charger:{
+    AC_7kW:{copper:3.2,aluminium:1.1},
+    AC_22kW:{copper:5.5,aluminium:1.8},
+    DC_50kW:{copper:9.5,aluminium:6.5,neodymium:0.012},
+  },
+  wire_cu4:{copper:0.034}, wire_cu6:{copper:0.051}, wire_al:{aluminium:0.068},
+};
+const DIMS = [
+  {key:'geo',  label:'Geopolitical\nconcentration', short:'Geopolitical',      w:0.25},
+  {key:'sup',  label:'Supply\ntrajectory',          short:'Supply trajectory', w:0.20},
+  {key:'rec',  label:'Recyclability',               short:'Recyclability',     w:0.20},
+  {key:'car',  label:'Embodied\ncarbon',            short:'Embodied carbon',   w:0.15},
+  {key:'sub',  label:'Substitution\npotential',     short:'Substitutability',  w:0.10},
+  {key:'reg',  label:'Regulatory\nwatchlists',      short:'Regulatory',        w:0.10},
+];
+const DS = {
+  neodymium:{geo:96,sup:65,rec:95,car:75,sub:55,reg:90},
+  cobalt:   {geo:94,sup:72,rec:90,car:68,sub:30,reg:92},
+  silicon:  {geo:92,sup:70,rec:78,car:88,sub:85,reg:88},
+  graphite: {geo:90,sup:68,rec:92,car:55,sub:60,reg:86},
+  lithium:  {geo:75,sup:90,rec:94,car:48,sub:55,reg:82},
+  copper:   {geo:70,sup:88,rec:38,car:35,sub:80,reg:75},
+  tellurium:{geo:72,sup:48,rec:88,car:65,sub:25,reg:45},
+  nickel:   {geo:62,sup:55,rec:48,car:62,sub:55,reg:72},
+  phosphorus:{geo:52,sup:42,rec:80,car:22,sub:82,reg:15},
+  manganese:{geo:48,sup:38,rec:62,car:28,sub:52,reg:18},
+  cadmium:  {geo:42,sup:25,rec:72,car:42,sub:22,reg:20},
+  silver:   {geo:28,sup:30,rec:38,car:15,sub:55,reg:12},
+  aluminium:{geo:32,sup:28,rec:12,car:48,sub:52,reg:8},
+  iron:     {geo:8, sup:5, rec:12,car:25,sub:88,reg:5},
+};
+const MC = {
+  neodymium:'#7C3AED',cobalt:'#DC2626',silicon:'#D97706',graphite:'#2563EB',
+  lithium:'#DB2777',copper:'#0891B2',tellurium:'#16A34A',nickel:'#EA580C',
+  phosphorus:'#9333EA',manganese:'#0D9488',cadmium:'#CA8A04',
+  silver:'#64748B',aluminium:'#94A3B8',iron:'#A3A3A3',
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function rc(s){if(s>=75)return'#DC2626';if(s>=55)return'#D97706';if(s>=35)return'#CA8A04';if(s>=15)return'#059669';return'#6B7280'}
+function verd(s){
+  if(s>=75)return['Critical exposure','Immediate design review required. High dependency on conflict minerals and single-origin supply chains.'];
+  if(s>=55)return['High exposure','Significant supply chain risk. Key substitutions recommended before specification is locked.'];
+  if(s>=35)return['Moderate exposure','Some material risks present. Targeted substitutions can reduce the score meaningfully.'];
+  if(s>=15)return['Low exposure','Well-managed material risk. Minor optimisations still available.'];
+  return['Minimal exposure','Design choices align with low-dependency supply chains.'];
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function fmt(n){return n<0.01?n.toFixed(4):n<1?n.toFixed(3):n.toFixed(1)}
+function h2r(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='results') setTimeout(()=>drawPB(_dimScores),80);
+}
+
+// ── PLANETARY BOUNDARIES CHART ────────────────────────────────────
+function drawPB(dimScores){
+  if(!Object.keys(dimScores).length) return;
+  const r = REGIONS[selectedRegion];
+  const BOUNDARY = r ? r.boundary : 60;
+  const canvas = document.getElementById('pbChart');
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.parentElement.clientWidth;
+  const H = W * 0.88;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=W/2,cy=H/2;
+  const pad=Math.min(70, Math.min(W,H)*0.18);
+  const R=Math.max(10, Math.min(W,H)/2-pad);
+  const N=DIMS.length;
+  const sa=(2*Math.PI)/N;
+  const startA=-Math.PI/2-sa/2;
+  const s2r=s=>Math.max(0,(s/100)*R);
+  const pol=(a,r)=>({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});
+
+  // Rings
+  [25,50,75,100].forEach(p=>{
+    ctx.beginPath();ctx.arc(cx,cy,s2r(p),0,2*Math.PI);
+    ctx.strokeStyle='rgba(120,105,85,0.09)';ctx.lineWidth=1;ctx.stroke();
+    if(p<100){ctx.fillStyle='rgba(120,105,85,0.38)';ctx.font=`9px 'DM Mono',monospace`;ctx.textAlign='left';ctx.fillText(p,cx+s2r(p)+3,cy-2);}
+  });
+
+  DIMS.forEach((dim,i)=>{
+    const score=Math.round(dimScores[dim.key]);
+    const aS=startA+i*sa,aE=aS+sa,aM=aS+sa/2;
+    const rTip=s2r(score),rBnd=s2r(BOUNDARY);
+    const safeR=s2r(Math.min(score,BOUNDARY));
+
+    // Safe fill
+    if(safeR>2 && rBnd>0){
+      const g1=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(1,rBnd));
+      g1.addColorStop(0,'rgba(20,83,45,0.82)');g1.addColorStop(.7,'rgba(22,101,52,0.74)');g1.addColorStop(1,'rgba(22,101,52,0.65)');
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,safeR,aS+.025,aE-.025);ctx.closePath();ctx.fillStyle=g1;ctx.fill();
+    }
+
+    // Risk overshoot
+    if(score>BOUNDARY && rTip>rBnd && rBnd>0){
+      const tip=score>90?'#DC2626':score>75?'#D97706':'#CA8A04';
+      const g2=ctx.createRadialGradient(cx,cy,Math.max(1,rBnd*.9),cx,cy,Math.max(2,rTip));
+      g2.addColorStop(0,h2r('#166534',.50));g2.addColorStop(.3,h2r(tip,.55));g2.addColorStop(1,h2r(tip,.90));
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,rTip,aS+.025,aE-.025);ctx.closePath();ctx.fillStyle=g2;ctx.fill();
+    }
+
+    // Spokes
+    [aS,aE].forEach(a=>{ctx.beginPath();ctx.moveTo(cx,cy);const p=pol(a,Math.max(rTip,rBnd));ctx.lineTo(p.x,p.y);ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1.5;ctx.stroke();});
+
+    // Arc border
+    ctx.beginPath();ctx.arc(cx,cy,Math.max(rTip,rBnd),aS+.025,aE-.025);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1;ctx.stroke();
+
+    // Score label — placed just outside the tip with a small offset
+    const tipR2 = Math.max(rTip, rBnd);
+    const lp=pol(aM, tipR2 + 14);
+    ctx.fillStyle=rc(score);ctx.font=`700 13px 'Plus Jakarta Sans',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(score,lp.x,lp.y);
+
+    // Name + weight label — quadrant-aware so they never overlap chart
+    const nameDist = R + pad * 0.52;
+    const np = pol(aM, nameDist);
+    const lines = dim.label.split('\n'), lh = 14;
+    // Determine alignment by horizontal position
+    const tAlign = np.x < cx - 8 ? 'right' : np.x > cx + 8 ? 'left' : 'center';
+    // Determine baseline by vertical position  
+    const tBase = np.y < cy - 8 ? 'bottom' : np.y > cy + 8 ? 'top' : 'middle';
+    ctx.fillStyle='#44403C';ctx.font=`500 11px 'Plus Jakarta Sans',sans-serif`;
+    ctx.textAlign=tAlign;ctx.textBaseline=tBase;
+    const totalH = lines.length * lh;
+    lines.forEach((l,li)=>{
+      const yOff = li * lh - (lines.length > 1 ? lh/2 : 0);
+      ctx.fillText(l, np.x, np.y + yOff);
+    });
+    // Weight below name
+    const wDist = R + pad * 0.82;
+    const wp = pol(aM, wDist);
+    ctx.fillStyle='#A8A29E';ctx.font=`500 10px 'DM Mono',monospace`;
+    ctx.textAlign=tAlign;ctx.textBaseline=tBase;
+    ctx.fillText(Math.round(dim.w*100)+'%', wp.x, wp.y);
+  });
+
+  // Boundary ring
+  const rBnd=s2r(BOUNDARY);
+  ctx.beginPath();ctx.arc(cx,cy,rBnd,0,2*Math.PI);ctx.fillStyle='rgba(22,101,52,0.04)';ctx.fill();
+  ctx.save();ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(cx,cy,rBnd,0,2*Math.PI);ctx.strokeStyle='rgba(22,101,52,0.65)';ctx.lineWidth=1.8;ctx.stroke();ctx.restore();
+
+  // Centre
+  ctx.fillStyle='rgba(22,101,52,0.68)';ctx.font=`italic 11px 'Instrument Serif',Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Safe operating space',cx,cy-7);
+  ctx.font=`9px 'DM Mono',monospace`;ctx.fillStyle='rgba(22,101,52,0.50)';ctx.fillText(`score ≤ ${BOUNDARY}`,cx,cy+7);
+  ctx.beginPath();ctx.arc(cx,cy,4,0,2*Math.PI);ctx.fillStyle='rgba(22,101,52,0.65)';ctx.fill();
+}
+window.addEventListener('resize',()=>{if(Object.keys(_dimScores).length)drawPB(_dimScores);});
 
 // ── CALCULATE ─────────────────────────────────────────────────────
-function calculate() {
-  const materials = {};
-  function add(comp,qty){ Object.entries(comp).forEach(([m,k])=>{ materials[m]=(materials[m]||0)+k*qty; }); }
+function calculate(){
+  const mats={};
+  function add(comp,qty){Object.entries(comp).forEach(([m,k])=>{mats[m]=(mats[m]||0)+k*qty;});}
 
-  if (document.getElementById('pv_e').checked)
-    add(COMPOSITION.solar_pv[document.getElementById('pv_t').value], +document.getElementById('pv_kwp').value||0);
-  if (document.getElementById('bat_e').checked)
-    add(COMPOSITION.battery_storage[document.getElementById('bat_t').value], +document.getElementById('bat_kwh').value||0);
-  if (document.getElementById('hp_e').checked)
-    add(COMPOSITION.heat_pump[document.getElementById('hp_t').value], +document.getElementById('hp_kw').value||0);
-  if (document.getElementById('ev_e').checked)
-    add(COMPOSITION.ev_charger[document.getElementById('ev_t').value], +document.getElementById('ev_units').value||0);
-  add(COMPOSITION.wiring_copper['4mm2'],    +document.getElementById('wire_cu').value||0);
-  add(COMPOSITION.wiring_copper['6mm2'],    +document.getElementById('wire_cu6').value||0);
-  add(COMPOSITION.wiring_aluminium['25mm2'],+document.getElementById('wire_al').value||0);
+  if(document.getElementById('pv_e').checked) add(COMP.solar_pv[document.getElementById('pv_t').value],+document.getElementById('pv_kwp').value||0);
+  if(document.getElementById('bat_e').checked) add(COMP.battery[document.getElementById('bat_t').value],+document.getElementById('bat_kwh').value||0);
+  if(document.getElementById('hp_e').checked) add(COMP.heat_pump[document.getElementById('hp_t').value],+document.getElementById('hp_kw').value||0);
+  if(document.getElementById('ev_e').checked) add(COMP.ev_charger[document.getElementById('ev_t').value],+document.getElementById('ev_units').value||0);
+  add(COMP.wire_cu4,+document.getElementById('wire_cu').value||0);
+  add(COMP.wire_cu6,+document.getElementById('wire_cu6').value||0);
+  add(COMP.wire_al,+document.getElementById('wire_al').value||0);
 
-  const matList = Object.entries(materials).filter(([,kg])=>kg>0.0001);
-  if (!matList.length) return;
-  const totalKg = matList.reduce((s,[,kg])=>s+kg,0);
+  const ml=Object.entries(mats).filter(([,k])=>k>0.0001);
+  if(!ml.length) return;
+  const tot=ml.reduce((s,[,k])=>s+k,0);
 
-  const dimScores = {};
-  DIMENSIONS.forEach(d=>{
+  const dimS={};
+  DIMS.forEach(d=>{
     let ws=0,wt=0;
-    matList.forEach(([mat,kg])=>{
-      if(DIM_SCORES[mat]){ ws+=DIM_SCORES[mat][d.key]*(kg/totalKg); wt+=kg/totalKg; }
-    });
-    dimScores[d.key]=wt>0?ws/wt:0;
+    ml.forEach(([m,k])=>{if(DS[m]){ws+=DS[m][d.key]*(k/tot);wt+=k/tot;}});
+    dimS[d.key]=wt>0?ws/wt:0;
   });
-  const cmes = Math.round(DIMENSIONS.reduce((s,d)=>s+dimScores[d.key]*d.weight,0));
+  const cmes=Math.round(DIMS.reduce((s,d)=>s+dimS[d.key]*d.w,0));
+  _dimScores=dimS;
 
-  // ── Score strip ──────────────────────────────────────────────────
-  const arc = document.getElementById('score_arc');
-  setTimeout(()=>{ arc.style.strokeDashoffset=232.5-(cmes/100)*232.5; arc.style.stroke=rc(cmes); },120);
+  // Region banner + nav
+  const reg=REGIONS[selectedRegion];
+  if(reg){
+    document.getElementById('res-flag').textContent=reg.flag;
+    document.getElementById('res-region-name').textContent=reg.shortName;
+    const banner=document.getElementById('region-banner');
+    banner.style.background=reg.colorBg;banner.style.borderColor=reg.colorBorder;
+    const exceeded=DIMS.filter(d=>Math.round(dimS[d.key])>reg.boundary);
+    banner.innerHTML=`<div class="rb-flag">${reg.flag}</div>
+      <div class="rb-content">
+        <div class="rb-title">${reg.name} — ${reg.policyName}</div>
+        <div class="rb-text">Safe operating space boundary: score ${reg.boundary}. ${exceeded.length===0?'All dimensions within safe operating space.':exceeded.length+' dimension'+(exceeded.length>1?'s':'')+ ' exceeded: '+exceeded.map(d=>d.short).join(', ')+'.'}</div>
+        <div class="rb-pills">${reg.pills.map(p=>`<span class="rb-pill" style="background:${p.cls==='crit'?'var(--rc-b)':p.cls==='warn'?'var(--rh-b)':'var(--rl-b)'};color:${p.cls==='crit'?'var(--rc)':p.cls==='warn'?'var(--rh)':'var(--rl)'};border-color:${p.cls==='crit'?'rgba(220,38,38,0.15)':p.cls==='warn'?'rgba(217,119,6,0.15)':'rgba(5,150,105,0.15)'}">${p.text}</span>`).join('')}</div>
+      </div>`;
+    // Region methodology card
+    document.getElementById('region-methodology-card').innerHTML=`
+      <div class="mc-ey">Region: ${reg.name}</div>
+      <div class="mc-title">${reg.flag} Boundary calibration — why score ${reg.boundary}?</div>
+      <div class="mc-body"><p>${reg.methodNote}</p></div>
+      <div class="fbox"><span class="eq">Safe operating space = score ≤ ${reg.boundary}</span><br>Policy basis: ${reg.policyName}<br>Single-origin concentration cap: ${reg.boundary}%</div>`;
+  }
+
+  // Score ring
+  const arc=document.getElementById('score_arc');
+  setTimeout(()=>{arc.style.strokeDashoffset=219.9-(cmes/100)*219.9;arc.style.stroke=rc(cmes);},100);
   document.getElementById('score_num').textContent=cmes;
   document.getElementById('score_num').style.color=rc(cmes);
-  const [v,d] = verdict(cmes);
-  const sv = document.getElementById('score_verdict');
-  sv.textContent=v; sv.style.color=rc(cmes);
-  document.getElementById('score_desc').textContent=d;
+  const[v,desc]=verd(cmes);
+  const sv=document.getElementById('score_verdict');sv.textContent=v;sv.style.color=rc(cmes);
+  document.getElementById('score_desc').textContent=desc;
   document.getElementById('score_date').textContent='Generated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-
-  // Building summary
-  const parts = [];
-  if (document.getElementById('pv_e').checked) parts.push(document.getElementById('pv_kwp').value+'kWp PV');
-  if (document.getElementById('bat_e').checked) parts.push(document.getElementById('bat_kwh').value+'kWh battery');
-  if (document.getElementById('hp_e').checked) parts.push(document.getElementById('hp_kw').value+'kW HP');
-  if (document.getElementById('ev_e').checked) parts.push(document.getElementById('ev_units').value+'× EV');
-  document.getElementById('score_building').textContent = parts.join(' · ');
+  const parts=[];
+  if(document.getElementById('pv_e').checked)parts.push(document.getElementById('pv_kwp').value+'kWp PV');
+  if(document.getElementById('bat_e').checked)parts.push(document.getElementById('bat_kwh').value+'kWh battery');
+  if(document.getElementById('hp_e').checked)parts.push(document.getElementById('hp_kw').value+'kW HP');
+  if(document.getElementById('ev_e').checked)parts.push(document.getElementById('ev_units').value+'× EV');
+  document.getElementById('score_building').textContent=parts.join(' · ');
 
   // Gauge
-  setTimeout(()=>{
-    const n=document.getElementById('gauge_needle');
-    n.style.left=cmes+'%'; n.style.color=rc(cmes); n.style.borderColor=rc(cmes);
-  },140);
+  setTimeout(()=>{const n=document.getElementById('gauge_needle');n.style.left=cmes+'%';n.style.color=rc(cmes);n.style.borderColor=rc(cmes);},120);
 
-  // PB chart (after results panel is visible)
-  setTimeout(()=>drawPB(dimScores),160);
+  // PB chart
+  setTimeout(()=>drawPB(dimS),150);
 
-  // ── Material donut ────────────────────────────────────────────────
-  if (matChart){ matChart.destroy(); matChart=null; }
-  const sorted = [...matList].sort((a,b)=>(MATERIAL_RISK[b[0]]?.score||0)-(MATERIAL_RISK[a[0]]?.score||0));
-  const topN = sorted.slice(0,9);
-  const otherKg = sorted.slice(9).reduce((s,[,kg])=>s+kg,0);
-  const dData = topN.map(([mat,kg])=>({ mat, kg, contrib:kg*(MATERIAL_RISK[mat]?.score||0) }));
-  const otherC = sorted.slice(9).reduce((s,[m,kg])=>s+kg*(MATERIAL_RISK[m]?.score||0),0);
-  const totalC = dData.reduce((s,d)=>s+d.contrib,0)+otherC;
-  const avgRisk = Math.round(totalC/totalKg);
-
-  document.getElementById('mat_avg').textContent=avgRisk;
-  document.getElementById('mat_avg').style.color=rc(avgRisk);
-
-  const labels=[...dData.map(d=>cap(d.mat)),...(otherKg>0?['Other']:[])];
-  const vals=[...dData.map(d=>+d.contrib.toFixed(1)),...(otherKg>0?[+otherC.toFixed(1)]:[])];
-  const cols=[...dData.map(d=>MAT_COLORS[d.mat]||'#94A3B8'),...(otherKg>0?['#D1D5DB']:[])];
-
+  // Donut
+  if(matChart){matChart.destroy();matChart=null;}
+  const sorted=[...ml].sort((a,b)=>(MAT[b[0]]?.score||0)-(MAT[a[0]]?.score||0));
+  const topN=sorted.slice(0,9);
+  const otherK=sorted.slice(9).reduce((s,[,k])=>s+k,0);
+  const dD=topN.map(([m,k])=>({m,k,c:k*(MAT[m]?.score||0)}));
+  const otherC=sorted.slice(9).reduce((s,[m,k])=>s+k*(MAT[m]?.score||0),0);
+  const totC=dD.reduce((s,d)=>s+d.c,0)+otherC;
+  const avgR=Math.round(totC/tot);
+  document.getElementById('mat_avg').textContent=avgR;document.getElementById('mat_avg').style.color=rc(avgR);
+  const labs=[...dD.map(d=>cap(d.m)),...(otherK>0?['Other']:[])];
+  const vals=[...dD.map(d=>+d.c.toFixed(1)),...(otherK>0?[+otherC.toFixed(1)]:[])];
+  const cols=[...dD.map(d=>MC[d.m]||'#94A3B8'),...(otherK>0?['#D1D5DB']:[])];
   matChart=new Chart(document.getElementById('matDonut').getContext('2d'),{
-    type:'doughnut',
-    data:{ labels, datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'#FFFFFF',hoverOffset:4}] },
-    options:{
-      responsive:true,maintainAspectRatio:false,cutout:'64%',
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${((ctx.parsed/totalC)*100).toFixed(1)}% risk contribution`}} }
-    }
+    type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'#FFF',hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'64%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${((ctx.parsed/totC)*100).toFixed(1)}% risk contribution`}}}}
   });
-  const ml=document.getElementById('mat_legend');
-  ml.innerHTML='';
-  labels.forEach((l,i)=>{
-    const pct=((vals[i]/totalC)*100).toFixed(0);
-    ml.innerHTML+=`<div class="dl-item"><span class="dl-dot" style="background:${cols[i]}"></span><span>${l}</span><span class="dl-val">${pct}%</span></div>`;
-  });
+  const ml2=document.getElementById('mat_legend');ml2.innerHTML='';
+  labs.forEach((l,i)=>{const p=((vals[i]/totC)*100).toFixed(0);ml2.innerHTML+=`<div class="dli"><span class="dld" style="background:${cols[i]}"></span><span>${l}</span><span class="dlv">${p}%</span></div>`;});
 
-  // ── Dimension rows ────────────────────────────────────────────────
-  const dl=document.getElementById('dim_list');
-  dl.innerHTML='';
-  DIMENSIONS.forEach(d=>{
-    const s=Math.round(dimScores[d.key]);
-    const c=rc(s);
-    dl.innerHTML+=`<div class="dim-row" style="border-left-color:${c}">
-      <span class="dim-nm">${d.short}</span>
-      <span class="dim-wt">${Math.round(d.weight*100)}%</span>
-      <div class="dim-bw"><div class="dim-b"><div class="dim-bf" id="db_${d.key}" style="background:${c}"></div></div></div>
-      <span class="dim-sc" style="color:${c}">${s}</span>
-    </div>`;
+  // Dim rows
+  const dl=document.getElementById('dim_list');dl.innerHTML='';
+  DIMS.forEach(d=>{
+    const s=Math.round(dimS[d.key]),c=rc(s);
+    dl.innerHTML+=`<div class="dim-row" style="border-left-color:${c}"><span class="dim-nm">${d.short}</span><span class="dim-wt">${Math.round(d.w*100)}%</span><div class="dim-bw"><div class="dim-b"><div class="dim-bf" id="db_${d.key}" style="background:${c}"></div></div></div><span class="dim-sc" style="color:${c}">${s}</span></div>`;
   });
-  setTimeout(()=>{ DIMENSIONS.forEach(d=>{ const el=document.getElementById('db_'+d.key); if(el) el.style.width=Math.round(dimScores[d.key])+'%'; }); },200);
+  setTimeout(()=>{DIMS.forEach(d=>{const el=document.getElementById('db_'+d.key);if(el)el.style.width=Math.round(dimS[d.key])+'%';});},200);
 
-  // ── Material table ────────────────────────────────────────────────
-  const tb=document.getElementById('mat_tbody');
-  tb.innerHTML='';
-  sorted.forEach(([mat,kg])=>{
-    const r=MATERIAL_RISK[mat]||{score:0,tier:'unknown',driver:'—'};
-    const tc={critical:'pc',high:'ph',medium:'pm',low:'pl',very_low:'pv'}[r.tier]||'pv';
-    tb.innerHTML+=`<tr>
-      <td>${cap(mat)}</td>
-      <td>${fmt(kg)}</td>
-      <td><span class="rp ${tc}">${r.tier.replace('_',' ')}</span></td>
-      <td style="color:${rc(r.score)};font-weight:500">${r.score}</td>
-      <td style="font-size:11px;color:var(--t2);max-width:260px;white-space:normal;line-height:1.4">${r.driver}</td>
-    </tr>`;
+  // Mat table
+  const tb=document.getElementById('mat_tbody');tb.innerHTML='';
+  sorted.forEach(([m,k])=>{
+    const r2=MAT[m]||{score:0,tier:'unknown',driver:'—'};
+    const tc={critical:'pc',high:'ph',medium:'pm',low:'pl',very_low:'pv'}[r2.tier]||'pv';
+    tb.innerHTML+=`<tr><td>${cap(m)}</td><td>${fmt(k)}</td><td><span class="rp ${tc}">${r2.tier.replace('_',' ')}</span></td><td style="color:${rc(r2.score)};font-weight:500">${r2.score}</td><td style="font-size:11px;max-width:240px;white-space:normal;line-height:1.4">${r2.driver}</td></tr>`;
   });
 
-  // ── Recommendations ───────────────────────────────────────────────
-  buildRecs(materials);
-
-  // ── Live Calculation tab ──────────────────────────────────────────
-  buildCalcTrace(materials, matList, totalKg, dimScores, cmes);
+  buildRecs(mats);
+  buildCalc(mats,ml,tot,dimS,cmes);
 }
 
-// ── BUILD CALC TRACE ──────────────────────────────────────────────
-function buildCalcTrace(materials, matList, totalKg, dimScores, cmes) {
-  // Step 1: material quantities
-  const s1 = document.getElementById('calc_step1');
-  s1.innerHTML='';
-  let html1='<div class="formula-live"><div class="fl-title">Material quantities</div>';
-  matList.forEach(([mat,kg])=>{
-    const r=MATERIAL_RISK[mat]?.score||0;
-    html1+=`<div class="fl-row"><span class="fl-label">${cap(mat)}</span><span class="fl-val">${fmt(kg)} kg</span></div>`;
-  });
-  html1+=`<div class="fl-row"><span class="fl-label">Total mass</span><span class="fl-val">${totalKg.toFixed(1)} kg</span></div>`;
-  html1+='</div>';
-  s1.innerHTML=html1;
-
-  // Step 2: mass fractions
-  const s2 = document.getElementById('calc_step2');
-  let html2='<div class="formula-live"><div class="fl-title">Mass fractions (kg_m / kg_total)</div>';
-  const sorted2=[...matList].sort((a,b)=>b[1]-a[1]);
-  sorted2.forEach(([mat,kg])=>{
-    const pct=((kg/totalKg)*100).toFixed(1);
-    html2+=`<div class="fl-row"><span class="fl-label">${cap(mat)}</span><span class="fl-val">${pct}% of total mass</span></div>`;
-  });
-  html2+='</div>';
-  s2.innerHTML=html2;
-
-  // Step 3: dimension aggregation
-  const s3 = document.getElementById('calc_step3');
-  let html3='';
-  DIMENSIONS.forEach(d=>{
-    const s=Math.round(dimScores[d.key]);
-    html3+=`<div class="formula-live" style="margin-bottom:8px">
-      <div class="fl-title" style="color:${rc(s)}">${d.short} — score: ${s}</div>`;
-    [...matList].sort((a,b)=>b[1]-a[1]).forEach(([mat,kg])=>{
-      if(!DIM_SCORES[mat]) return;
-      const frac=((kg/totalKg)*100).toFixed(1);
-      const mscore=DIM_SCORES[mat][d.key];
-      const contrib=((kg/totalKg)*mscore).toFixed(1);
-      html3+=`<div class="fl-row">
-        <span class="fl-label">${cap(mat)} (${frac}% × ${mscore})</span>
-        <span class="fl-val">= ${contrib}</span>
-      </div>`;
-    });
-    html3+=`<div class="fl-row"><span class="fl-label">Weighted average</span><span class="fl-val" style="color:${rc(s)}">${s} / 100</span></div>`;
-    html3+='</div>';
-  });
-  s3.innerHTML=html3;
-
-  // Step 4: final CMES
-  const s4 = document.getElementById('calc_step4');
-  let html4='<div class="formula-live"><div class="fl-title">Final CMES = Σ (dimension score × weight)</div>';
-  DIMENSIONS.forEach(d=>{
-    const s=Math.round(dimScores[d.key]);
-    const contrib=(s*d.weight).toFixed(2);
-    html4+=`<div class="fl-row">
-      <span class="fl-label">${d.short} (${s} × ${Math.round(d.weight*100)}%)</span>
-      <span class="fl-val">= ${contrib}</span>
-    </div>`;
-  });
-  html4+=`<div class="fl-row"><span class="fl-label" style="font-weight:700;color:var(--t1)">CMES Score</span><span class="fl-val" style="color:${rc(cmes)};font-size:16px;font-weight:700">${cmes} / 100</span></div>`;
-  html4+='</div>';
-  s4.innerHTML=html4;
-}
-
-// ── RECOMMENDATIONS ───────────────────────────────────────────────
-function buildRecs(materials) {
+function buildRecs(mats){
   const recs=[];
-  const pvOn=document.getElementById('pv_e').checked;
-  const batOn=document.getElementById('bat_e').checked;
-  const hpOn=document.getElementById('hp_e').checked;
-  const pvType=document.getElementById('pv_t').value;
-  const batType=document.getElementById('bat_t').value;
-  const hpType=document.getElementById('hp_t').value;
+  const pvOn=document.getElementById('pv_e').checked,batOn=document.getElementById('bat_e').checked,hpOn=document.getElementById('hp_e').checked;
+  const pvT=document.getElementById('pv_t').value,batT=document.getElementById('bat_t').value,hpT=document.getElementById('hp_t').value;
   const wiAl=+document.getElementById('wire_al').value||0;
-
-  if(batOn&&(batType==='NMC_622'||batType==='NMC_811')){
-    const cobKg=(materials.cobalt||0).toFixed(2);
-    recs.push({title:`Switch battery chemistry: ${batType} → LFP`,
-      body:`Your ${batType} battery contains ${cobKg} kg of cobalt — sourced 70%+ from the DRC with active export restrictions since 2025. LFP (lithium iron phosphate) eliminates cobalt entirely with equivalent performance for stationary storage.`,
-      saving:batType==='NMC_622'?'Eliminates 100% of cobalt and reduces nickel by ~60%':'Eliminates remaining cobalt and reduces nickel exposure',warn:false});
+  if(batOn&&(batT==='NMC_622'||batT==='NMC_811')){
+    const cob=(mats.cobalt||0).toFixed(2);
+    recs.push({t:`Switch battery: ${batT} → LFP`,b:`Your ${batT} battery contains ${cob}kg of cobalt — sourced 70%+ from the DRC with active export restrictions since 2025. LFP eliminates cobalt entirely with equivalent stationary storage performance.`,s:batT==='NMC_622'?'Eliminates 100% of cobalt, reduces nickel by ~60%':'Eliminates remaining cobalt, reduces nickel exposure',w:false});
   }
-  if(pvOn&&pvType==='mono_Si'){
-    const agKg=(materials.silver||0).toFixed(3);
-    recs.push({title:'Specify low-silver solar panels',
-      body:`Standard mono-Si panels contain ${agKg} kg of silver. Next-generation low-silver designs reduce silver intensity by ~70% with equivalent performance. Specify by EPD silver content when tendering.`,
-      saving:'Reduces silver exposure by ~70% — approx. 4–6 point score improvement',warn:false});
+  if(pvOn&&pvT==='mono_Si'){
+    const ag=(mats.silver||0).toFixed(3);
+    recs.push({t:'Specify low-silver solar panels',b:`Standard mono-Si panels contain ${ag}kg of silver. Next-gen low-silver designs reduce intensity by ~70% at equivalent performance. Specify by EPD silver content when tendering.`,s:'Reduces silver exposure ~70% — approx. 4–6 point score improvement',w:false});
   }
-  if(hpOn&&hpType==='air_source_standard'){
-    const ndKg=(materials.neodymium||0).toFixed(3);
-    recs.push({title:'Specify rare-earth-free heat pump',
-      body:`Standard ASHPs use permanent magnet motors containing ${ndKg} kg of neodymium — where China controls ~92% of refining with tightening export controls. Daikin and Mitsubishi offer induction-motor (RE-free) models at equivalent efficiency.`,
-      saving:'Eliminates neodymium exposure — highest single-material risk reduction available',warn:false});
+  if(hpOn&&hpT==='air_source_standard'){
+    const nd=(mats.neodymium||0).toFixed(3);
+    recs.push({t:'Specify rare-earth-free heat pump',b:`Standard ASHPs use permanent magnet motors containing ${nd}kg of neodymium — China controls ~92% of refining with tightening export controls. RE-free induction motor models available from Daikin, Mitsubishi at equivalent efficiency.`,s:'Eliminates neodymium exposure — highest single-material risk reduction available',w:false});
   }
-  if(wiAl===0&&(materials.copper||0)>10){
-    recs.push({title:'Consider aluminium conductors for sub-mains',
-      body:'Your design uses significant copper wiring. For sub-main distribution (16mm²+), aluminium is a low-risk alternative with 76% recycling rate vs copper\'s 43%. Requires larger cross-sections but is fully code-compliant in commercial buildings.',
-      saving:'Partially reduces copper exposure — copper demand nearly doubles by 2035',warn:false});
+  if(wiAl===0&&(mats.copper||0)>10){
+    recs.push({t:'Consider aluminium conductors for sub-mains',b:"For sub-main distribution (16mm²+), aluminium offers 76% EOL recycling vs copper's 43%. Code-compliant in commercial buildings at larger cross-sections.",s:'Reduces copper exposure — copper demand nearly doubles by 2035',w:false});
   }
-  if(materials.silicon&&materials.silicon>50){
-    recs.push({title:'Monitor silicon supply chain (structural risk)',
-      body:`Your building contains ${materials.silicon.toFixed(1)} kg of silicon from solar PV. China controls ~95% of global silicon wafer refining — this is a structural risk that cannot be fully designed out with crystalline silicon panels. Domestic EU/US capacity is 5–10 years away.`,
-      saving:'Consider thin-film CdTe panels if complete silicon independence is required',warn:true});
+  if(mats.silicon&&mats.silicon>50){
+    recs.push({t:'Monitor silicon supply chain (structural risk)',b:`${mats.silicon.toFixed(1)}kg of silicon from solar PV. China controls ~95% of refining — cannot be designed out with crystalline silicon. EU/US domestic capacity is 5–10 years away.`,s:'Consider thin-film CdTe panels if complete silicon independence is required',w:true});
   }
   if(!recs.length){
-    recs.push({title:'Good material risk profile',
-      body:'Your current specification shows well-managed critical material exposure. Continue to specify by EPD where possible and revisit as new low-risk product generations become available.',
-      saving:'No urgent substitutions required at this stage',warn:false});
+    recs.push({t:'Good material risk profile',b:'Current specification shows well-managed critical material exposure. Continue specifying by EPD and revisit as low-risk product generations become available.',s:'No urgent substitutions required',w:false});
   }
   const rl=document.getElementById('recs_list');
   rl.innerHTML='';
-  recs.forEach(r=>{
-    rl.innerHTML+=`<div class="rec${r.warn?' warn':''}"><div class="rec-t">${r.title}</div><div class="rec-b">${r.body}</div><div class="rec-s">${r.saving}</div></div>`;
+  recs.forEach(r=>{rl.innerHTML+=`<div class="rec${r.w?' warn':''}"><div class="rec-t">${r.t}</div><div class="rec-b">${r.b}</div><div class="rec-s">${r.s}</div></div>`;});
+}
+
+function buildCalc(mats,ml,tot,dimS,cmes){
+  const s1=document.getElementById('calc_s1');
+  let h1='<div class="flive"><div class="flive-ttl">Material quantities (kg)</div>';
+  ml.forEach(([m,k])=>{h1+=`<div class="fl-row"><span class="fl-l">${cap(m)}</span><span class="fl-v">${fmt(k)} kg</span></div>`;});
+  h1+=`<div class="fl-row"><span class="fl-l">Total mass</span><span class="fl-v">${tot.toFixed(1)} kg</span></div></div>`;
+  s1.innerHTML=h1;
+
+  const s2=document.getElementById('calc_s2');
+  let h2='<div class="flive"><div class="flive-ttl">Mass fractions (kg_m / kg_total)</div>';
+  [...ml].sort((a,b)=>b[1]-a[1]).forEach(([m,k])=>{h2+=`<div class="fl-row"><span class="fl-l">${cap(m)}</span><span class="fl-v">${((k/tot)*100).toFixed(1)}%</span></div>`;});
+  h2+='</div>';
+  s2.innerHTML=h2;
+
+  const s3=document.getElementById('calc_s3');
+  let h3='';
+  DIMS.forEach(d=>{
+    const s=Math.round(dimS[d.key]);
+    h3+=`<div class="flive" style="margin-bottom:8px"><div class="flive-ttl" style="color:${rc(s)}">${d.short} — ${s}</div>`;
+    [...ml].sort((a,b)=>b[1]-a[1]).forEach(([m,k])=>{
+      if(!DS[m])return;
+      const f=((k/tot)*100).toFixed(1),ms=DS[m][d.key];
+      h3+=`<div class="fl-row"><span class="fl-l">${cap(m)} (${f}% × ${ms})</span><span class="fl-v">${((k/tot)*ms).toFixed(1)}</span></div>`;
+    });
+    h3+=`<div class="fl-row"><span class="fl-l">Weighted average</span><span class="fl-v" style="color:${rc(s)}">${s} / 100</span></div></div>`;
   });
+  s3.innerHTML=h3;
+
+  const s4=document.getElementById('calc_s4');
+  let h4='<div class="flive"><div class="flive-ttl">Final CMES = Σ (dimension × weight)</div>';
+  DIMS.forEach(d=>{const s=Math.round(dimS[d.key]),c=(s*d.w).toFixed(2);h4+=`<div class="fl-row"><span class="fl-l">${d.short} (${s} × ${Math.round(d.w*100)}%)</span><span class="fl-v">= ${c}</span></div>`;});
+  h4+=`<div class="fl-row"><span class="fl-l" style="font-weight:700;color:var(--t1)">CMES Score</span><span class="fl-v" style="color:${rc(cmes)};font-size:16px;font-weight:700">${cmes} / 100</span></div></div>`;
+  s4.innerHTML=h4;
 }
 </script>
 </body>
